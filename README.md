@@ -31,6 +31,26 @@
 
 ---
 
+## 🎓 Education
+
+| Degree | Institution | Duration |
+|:--|:--|:--|
+| 🎓 **M.Sc. — Artificial Intelligence & Data Analytics** | Hochschule Neu-Ulm · Germany 🇩🇪 | `Oct 2025 – Present` |
+| 🎓 **B.Tech — Computer Science & Engineering** *(Big Data Analytics)* | Parul University · India 🇮🇳 | `Jul 2020 – May 2024` |
+
+---
+
+## 📜 Certifications
+
+| Category | Certifications |
+|:--|:--|
+| ☁️ **Microsoft & Cloud** | Azure Fundamentals · Azure AI Fundamentals · Azure Data Fundamentals · Microsoft 365 Fundamentals · Cloud Computing |
+| 🤖 **ML & Data Science** | Machine Learning *(DeepLearning.AI)* · Data Science with Python · ML Fast Track · Advanced Trends in ML |
+| 💼 **Virtual Experience** | Data Science Job Simulation *(British Airways)* · Data Analytics Consulting *(KPMG)* |
+| 🛠️ **Tools & More** | Jira Project Management *(Great Learning)* · Introduction to IoT *(Stanford)* · Parul Let's Hack *(Hackathon)* · MBTI Personality Prediction *(Tech Expo 2024)* |
+
+---
+
 ## 🛠️ Tech Stack
 
 <div align="center">
