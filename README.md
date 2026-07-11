@@ -3,8 +3,8 @@
 
 <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12,20,24&height=160&section=header&reversal=false" width="100%" alt="header" />
 
-<!-- Profile image (in place of the name) -->
-<img src="https://avatars.githubusercontent.com/u/121952424?v=4" width="150" height="150" alt="Vinay Talaviya" style="border-radius:50%;" />
+<!-- Animated black-and-white scan-line profile photo (in place of the name) -->
+<img src="https://raw.githubusercontent.com/vinay4955/vinay4955/main/assets/profile.svg" width="210" alt="Vinay Talaviya" />
 
 <!-- Dynamic typing animation -->
 <br/><br/>
@@ -79,12 +79,7 @@
 
 <div align="center">
 
-<img height="180em" src="https://github-readme-stats.vercel.app/api?username=vinay4955&show_icons=true&theme=tokyonight&include_all_commits=true&count_private=true&hide_border=true" alt="GitHub Stats" />
-<img height="180em" src="https://github-readme-stats.vercel.app/api/top-langs/?username=vinay4955&layout=compact&theme=tokyonight&hide_border=true&include_all_commits=true&count_private=true&langs_count=8" alt="Top Languages" />
-
-<br/>
-
-<img src="https://github-readme-streak-stats.herokuapp.com/?user=vinay4955&theme=tokyonight&hide_border=true" alt="GitHub Streak" />
+<img height="200em" src="https://github-readme-stats.vercel.app/api?username=vinay4955&show_icons=true&theme=tokyonight&include_all_commits=true&count_private=true&hide_border=true" alt="GitHub Stats" />
 
 </div>
 
@@ -110,9 +105,9 @@
 
 <br/><br/>
 
-<b>કેમ છો! 👋 Gujarati by heart, coder by craft.</b>
+<b>💻 Code is my craft, curiosity my fuel — Gujarati by roots. કેમ છો! 👋</b>
 <br/>
-<i>Give me ☕ chai and a keyboard — and together we can build anything. 💻🚀</i>
+<i>Bring me a problem or an idea — and together, we can build anything. 🚀</i>
 
 <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12,20,24&height=120&section=footer" width="100%" alt="footer" />
 
