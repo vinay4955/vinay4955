@@ -26,24 +26,13 @@
 
 ---
 
-## 💫 About Me
+## 🧠 About Me
 
-```python
-class VinayTalaviya:
-    def __init__(self):
-        self.role      = "Aspiring Data Engineer"
-        self.education = "CSE · Specialized in Big Data Analytics"
-        self.based_in  = "Neu-Ulm, Germany 🇩🇪"
-        self.focus     = ["Data Engineering", "AI / ML / DL", "NLP", "Data Pipelines"]
-        self.stack     = ["Python", "PyTorch", "FastAPI", "SQL", "React/TS"]
-
-    def current(self):
-        return "Building end-to-end data & ML systems — from scraping to serving 🚀"
-```
-
-- 🔭 **Currently building:** production-grade data pipelines & ML-powered web apps
-- 🌱 **Learning:** modern data-engineering tooling — orchestration (Airflow), warehousing (Databricks/DuckDB) & MLOps
-- 🤝 **Open to collaborating on:** data-engineering, ML/NLP & full-stack data apps
+- 🛠️ **Top skills:** Python, Data Engineering, AI / ML / DL
+- 🎓 CSE — specialized in **Big Data Analytics**
+- 🌱 Passionate about building **end-to-end data pipelines** & ML-powered web apps
+- 🔭 Currently exploring modern data-engineering tooling — Airflow, Databricks & MLOps
+- 🤝 Always open to collaboration and new ideas!
 
 ---
 
