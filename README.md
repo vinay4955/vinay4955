@@ -80,55 +80,6 @@ class VinayTalaviya:
 
 ---
 
-## 🚀 Featured Projects
-
-<table>
-<tr>
-<td width="50%" valign="top">
-
-### 🤖 [Job Finder Automation](https://github.com/vinay4955/Job-Application-project)
-Scrapes **9 German job boards** in parallel, scores every listing against your profile with **NLP**, and serves the best-matched roles in a clean web UI.
-
-`Python` · `FastAPI` · `NLP` · `Web Scraping`
-
-</td>
-<td width="50%" valign="top">
-
-### 🛡️ [Routing Guard](https://github.com/vinay4955/Routing-Guard)
-Read-only full-stack app that validates **SAP routing & BOM** master data with 25+ rules + a plain-English **LLM → SQL** rule engine. Never writes to SAP.
-
-`FastAPI` · `React/TS` · `DuckDB` · `Databricks` · `LLM`
-
-</td>
-</tr>
-<tr>
-<td width="50%" valign="top">
-
-### 🧬 [Universal Sentence Encoder](https://github.com/vinay4955/NLP-Universal-Sentence-Encoder)
-From-scratch **PyTorch** re-implementation of the USE (Cer et al., 2018) — DAN & Transformer encoders with STS-B & SST-2 transfer-learning experiments.
-
-`PyTorch` · `Transformers` · `Sentence Embeddings`
-
-</td>
-<td width="50%" valign="top">
-
-### 📈 [Time Series Forecasting](https://github.com/vinay4955/TIME-SERIES-ANALYSIS-FOR-FUTURE-PREDICTION)
-End-to-end time-series analysis & future prediction — feature engineering, modeling, and forecast evaluation.
-
-`Python` · `Pandas` · `Forecasting`
-
-</td>
-</tr>
-</table>
-
-<div align="center">
-
-**🎓 Internship work:** [CVIP Data Science](https://github.com/vinay4955/CVIP_Data-Science-Intern) · [Bharat Intern](https://github.com/vinay4955/Bharat_Intern) · [Oasis Infobyte (OIBSIP)](https://github.com/vinay4955/OIBSIP) · [Intel Unnati — Road Object Detection](https://github.com/vinay4955/Intel_unnati-Instinct-Pirates-)
-
-</div>
-
----
-
 ## 📊 GitHub Analytics
 
 <div align="center">
