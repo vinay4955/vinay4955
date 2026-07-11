@@ -12,7 +12,6 @@
 <p>
   <a href="https://www.linkedin.com/in/vinay-talaviya-2192791b7/"><img src="https://img.shields.io/badge/LinkedIn-Vinay_Talaviya-000000?style=flat-square&logo=linkedin&logoColor=white" alt="LinkedIn" /></a>
   <a href="mailto:vinaytalaviya4955@gmail.com"><img src="https://img.shields.io/badge/Email-vinaytalaviya4955-000000?style=flat-square&logo=gmail&logoColor=white" alt="Email" /></a>
-  <a href="https://github.com/vinay4955"><img src="https://img.shields.io/badge/GitHub-vinay4955-000000?style=flat-square&logo=github&logoColor=white" alt="GitHub" /></a>
   <a href="https://github.com/vinay4955"><img src="https://komarev.com/ghpvc/?username=vinay4955&color=000000&style=flat-square&label=Profile+Views" alt="Profile Views" /></a>
 </p>
 
