@@ -105,7 +105,7 @@
 
 <br/><br/>
 
-<b>💻 Code is my craft, curiosity my fuel — Gujarati by roots. કેમ છો! 👋</b>
+<b>💻 કેમ છો! 👋 Coder by craft, Gujarati by roots.</b>
 <br/>
 <i>Bring me a problem or an idea — and together, we can build anything. 🚀</i>
 
