@@ -71,16 +71,6 @@
 
 ---
 
-## 📊 GitHub Stats
-
-<div align="center">
-
-<img height="200em" src="https://github-readme-stats.vercel.app/api?username=vinay4955&show_icons=true&theme=tokyonight&include_all_commits=true&count_private=true&hide_border=true" alt="GitHub Stats" />
-
-</div>
-
----
-
 ## 📈 Contribution Graph
 
 <div align="center">
