@@ -71,6 +71,17 @@
 
 ---
 
+## 📊 GitHub Stats
+
+<div align="center">
+
+<img height="180em" src="https://github-readme-stats.vercel.app/api?username=vinay4955&show_icons=true&theme=tokyonight&include_all_commits=true&count_private=true&hide_border=true" alt="GitHub Stats" />
+<img height="180em" src="https://github-readme-stats.vercel.app/api/top-langs/?username=vinay4955&layout=compact&theme=tokyonight&hide_border=true&include_all_commits=true&count_private=true&langs_count=8" alt="Top Languages" />
+
+</div>
+
+---
+
 ## 📈 Contribution Graph
 
 <div align="center">
