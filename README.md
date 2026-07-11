@@ -94,15 +94,15 @@
 
 <div align="center">
 
-<a href="mailto:vinaytalaviya4955@gmail.com"><img src="https://img.shields.io/badge/Gmail-EA4335?style=for-the-badge&logo=gmail&logoColor=white" alt="Gmail" /></a>
-<a href="https://www.linkedin.com/in/vinay-talaviya-2192791b7/"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" /></a>
-<a href="https://github.com/vinay4955"><img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub" /></a>
+<a href="https://www.linkedin.com/in/vinay-talaviya-2192791b7/"><img src="https://img.shields.io/badge/LinkedIn-Vinay_Talaviya-000000?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" /></a>
+<a href="mailto:vinaytalaviya4955@gmail.com"><img src="https://img.shields.io/badge/Email-vinaytalaviya4955@gmail.com-000000?style=for-the-badge&logo=gmail&logoColor=white" alt="Email" /></a>
+<a href="https://github.com/vinay4955"><img src="https://img.shields.io/badge/GitHub-vinay4955-000000?style=for-the-badge&logo=github&logoColor=white" alt="GitHub" /></a>
 
 <br/><br/>
 
 <b>💻 કેમ છો! 👋 Coder by craft, Gujarati by roots.</b>
 <br/>
-<i>Bring me a problem or an idea — and together, we can build anything.</i>
+<i>Bring me a problem or an idea — and together, we can build anything. 🚀</i>
 
 <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12,20,24&height=120&section=footer" width="100%" alt="footer" />
 
