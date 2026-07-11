@@ -43,9 +43,7 @@ class VinayTalaviya:
 
 - 🔭 **Currently building:** production-grade data pipelines & ML-powered web apps
 - 🌱 **Learning:** modern data-engineering tooling — orchestration (Airflow), warehousing (Databricks/DuckDB) & MLOps
-- 🧠 **Ask me about:** NLP, sentence embeddings, web scraping, FastAPI & data quality
 - 🤝 **Open to collaborating on:** data-engineering, ML/NLP & full-stack data apps
-- ⚡ **Fun fact:** I once re-implemented Google's Universal Sentence Encoder *from scratch* on a laptop CPU
 
 ---
 
@@ -113,16 +111,6 @@ class VinayTalaviya:
 
 ---
 
-## 🏆 Achievements
-
-<div align="center">
-
-<img src="https://github-profile-trophy.vercel.app/?username=vinay4955&theme=tokyonight&no-frame=true&no-bg=true&margin-w=4&row=1&column=7" alt="Trophies" />
-
-</div>
-
----
-
 ## 🤝 Connect With Me
 
 <div align="center">
@@ -133,7 +121,9 @@ class VinayTalaviya:
 
 <br/><br/>
 
-<i>⭐️ From <a href="https://github.com/vinay4955">vinay4955</a> — thanks for stopping by!</i>
+<b>કેમ છો! 👋 Gujarati by heart, coder by craft.</b>
+<br/>
+<i>Give me ☕ chai and a keyboard — and together we can build anything. 💻🚀</i>
 
 <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12,20,24&height=120&section=footer" width="100%" alt="footer" />
 
