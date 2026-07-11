@@ -102,7 +102,7 @@
 
 <b>💻 કેમ છો! 👋 Coder by craft, Gujarati by roots.</b>
 <br/>
-<i>Bring me a problem or an idea — and together, we can build anything. 🚀</i>
+<i>Bring me a problem or an idea — and together, we can build anything.</i>
 
 <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12,20,24&height=120&section=footer" width="100%" alt="footer" />
 
