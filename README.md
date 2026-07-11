@@ -3,11 +3,7 @@
 
 <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12,20,24&height=160&section=header&reversal=false" width="100%" alt="header" />
 
-<!-- Animated black-and-white scan-line profile photo (in place of the name) -->
-<img src="https://raw.githubusercontent.com/vinay4955/vinay4955/main/assets/profile.svg" width="210" alt="Vinay Talaviya" />
-
 <!-- Dynamic typing animation -->
-<br/><br/>
 <a href="https://github.com/vinay4955">
   <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=28&pause=1000&color=70A5FD&center=true&vCenter=true&width=820&height=60&lines=Aspiring+Data+Engineer+%F0%9F%9B%A0%EF%B8%8F;Big+Data+Analytics+%7C+AI+%2F+ML+%2F+DL;NLP+%26+Data+Pipeline+Builder;Turning+raw+data+into+decisions." alt="Typing SVG" />
 </a>
