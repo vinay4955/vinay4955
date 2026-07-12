@@ -1,4 +1,4 @@
-<!--============================ HEADER ============================-->
+<!--=========================== HEADER ===========================-->
 <div align="center">
 
 <!-- Animated terminal profile card — theme-aware (dark/light), doubles as the About/bio -->
