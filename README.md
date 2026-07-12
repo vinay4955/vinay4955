@@ -1,51 +1,20 @@
 <!--============================ HEADER ============================-->
 <div align="center">
 
-<!-- Animated terminal profile card — theme-aware (dark/light) -->
+<!-- Animated terminal profile card — theme-aware (dark/light), doubles as the About/bio -->
 <a href="https://github.com/vinay4955">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/vinay4955/vinay4955/main/dark.svg?v=2">
-    <img alt="Vinay Talaviya — profile card" src="https://raw.githubusercontent.com/vinay4955/vinay4955/main/light.svg?v=2" width="100%">
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/vinay4955/vinay4955/main/dark.svg?v=3">
+    <img alt="Vinay Talaviya — Data Engineer · AI/ML. M.Sc AI & Data Analytics @ Hochschule Neu-Ulm. Python, SQL, PyTorch, Airflow, Spark, Databricks, FastAPI, Azure." src="https://raw.githubusercontent.com/vinay4955/vinay4955/main/light.svg?v=3" width="100%">
   </picture>
 </a>
 
-<!-- Dynamic typing animation -->
-<a href="https://github.com/vinay4955">
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=24&pause=1000&color=70A5FD&center=true&vCenter=true&width=820&height=55&lines=Turning+raw+data+into+decisions.;Building+end-to-end+data+pipelines.;NLP+%C2%B7+Deep+Learning+%C2%B7+MLOps;M.Sc+AI+%26+Data+Analytics+%40+HNU+Germany" alt="Typing SVG" />
-</a>
-
-<!-- Social badges -->
+<!-- Live profile-view counter (only genuinely dynamic badge — everything else lives in the card) -->
 <p>
-  <a href="https://www.linkedin.com/in/vinay-talaviya-2192791b7/"><img src="https://img.shields.io/badge/LinkedIn-Vinay_Talaviya-0A66C2?style=flat-square&logo=linkedin&logoColor=white" alt="LinkedIn" /></a>
-  <a href="mailto:vinaytalaviya4955@gmail.com"><img src="https://img.shields.io/badge/Email-vinaytalaviya4955-EA4335?style=flat-square&logo=gmail&logoColor=white" alt="Email" /></a>
-  <img src="https://img.shields.io/badge/📍_Neu--Ulm,_Germany-1A1B27?style=flat-square" alt="Location" />
   <img src="https://komarev.com/ghpvc/?username=vinay4955&color=70A5FD&style=flat-square&label=Profile+Views" alt="Profile Views" />
 </p>
 
 </div>
-
-<!-- ============================ ABOUT ============================ -->
-
-## 🧠 About Me
-
-```python
-class Vinay:
-    def __init__(self):
-        self.role      = "Aspiring Data Engineer"
-        self.education = "M.Sc — AI & Data Analytics @ Hochschule Neu-Ulm 🇩🇪"
-        self.base      = "CSE, specialized in Big Data Analytics"
-        self.focus     = ["Data Pipelines", "NLP", "Deep Learning", "MLOps"]
-        self.exploring = ["Airflow", "Databricks", "Spark", "Cloud Data Eng"]
-        self.mantra    = "Turn raw data into decisions."
-
-    def open_to(self):
-        return "collaboration · new ideas · data problems worth solving"
-```
-
-- 🎓 Pursuing **M.Sc. in Artificial Intelligence & Data Analytics** at Hochschule Neu-Ulm, Germany
-- 🛠️ Comfortable across the stack — from **PyTorch model internals** to **FastAPI services** and **data pipelines**
-- 🌱 Currently going deep on modern **data-engineering tooling** and **MLOps**
-- 🤝 Always open to collaboration — bring me a problem or an idea and let's build
 
 <!-- ============================ TECH STACK ============================ -->
 
