@@ -41,61 +41,6 @@ class Vinay:
 - 🌱 Currently going deep on modern **data-engineering tooling** and **MLOps**
 - 🤝 Always open to collaboration — bring me a problem or an idea and let's build
 
-<!-- ============================ FEATURED PROJECTS ============================ -->
-
-## 🚀 Featured Projects
-
-<table>
-<tr>
-<td width="50%" valign="top">
-
-### 🔤 NLP — Universal Sentence Encoder
-From-scratch **PyTorch** re-implementation of the Universal Sentence Encoder (Cer et al., 2018) — both **DAN** & **Transformer** encoders, with semantic-similarity (STS-B) and transfer-learning (SST-2) experiments.
-
-`PyTorch` `NLP` `Sentence Embeddings` `Transformer`
-
-<a href="https://github.com/vinay4955/NLP-Universal-Sentence-Encoder">→ View Repo</a>
-
-</td>
-<td width="50%" valign="top">
-
-### 🎯 Job Application Project
-A **Python / FastAPI** automation platform that scrapes and organizes job listings — personal end-to-end build covering scraping, storage, and an API layer.
-
-`Python` `FastAPI` `Automation` `Scraping`
-
-<a href="https://github.com/vinay4955/Job-Application-project">→ View Repo</a>
-
-</td>
-</tr>
-<tr>
-<td width="50%" valign="top">
-
-### 📈 Time Series Analysis
-Forecasting notebook exploring **time-series decomposition, modeling, and future prediction** on real-world data.
-
-`Jupyter` `Forecasting` `Pandas` `Statsmodels`
-
-<a href="https://github.com/vinay4955/TIME-SERIES-ANALYSIS-FOR-FUTURE-PREDICTION">→ View Repo</a>
-
-</td>
-<td width="50%" valign="top">
-
-### 🛡️ Routing-Guard
-A **Python** experiment in intelligent request routing / guarding — routing logic with safety-first defaults.
-
-`Python` `Routing` `Guardrails`
-
-<a href="https://github.com/vinay4955/Routing-Guard">→ View Repo</a>
-
-</td>
-</tr>
-</table>
-
-<div align="center">
-<a href="https://github.com/vinay4955?tab=repositories"><img src="https://img.shields.io/badge/See_all_repositories-1A1B27?style=for-the-badge&logo=github&logoColor=70A5FD" alt="All repos" /></a>
-</div>
-
 <!-- ============================ TECH STACK ============================ -->
 
 ## 🛠️ Tech Stack
@@ -144,12 +89,7 @@ A **Python** experiment in intelligent request routing / guarding — routing lo
 
 <div align="center">
 
-<img height="165" src="https://github-readme-stats.vercel.app/api?username=vinay4955&show_icons=true&theme=tokyonight&hide_border=true&include_all_commits=true&count_private=true&card_width=490" alt="GitHub Stats" />
-<img height="165" src="https://github-readme-stats.vercel.app/api/top-langs/?username=vinay4955&layout=compact&theme=tokyonight&hide_border=true&langs_count=8&card_width=340" alt="Top Languages" />
-
 <img src="https://github-readme-streak-stats.herokuapp.com/?user=vinay4955&theme=tokyonight&hide_border=true&border_radius=10" alt="GitHub Streak" />
-
-<img src="https://github-profile-trophy.vercel.app/?username=vinay4955&theme=tokyonight&no-frame=true&no-bg=true&column=7&margin-w=8" alt="Trophies" />
 
 <img src="https://github-readme-activity-graph.vercel.app/graph?username=vinay4955&theme=tokyo-night&hide_border=true&area=true" width="95%" alt="Activity Graph" />
 
@@ -181,7 +121,6 @@ A **Python** experiment in intelligent request routing / guarding — routing lo
 
 <a href="https://www.linkedin.com/in/vinay-talaviya-2192791b7/"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" /></a>
 <a href="mailto:vinaytalaviya4955@gmail.com"><img src="https://img.shields.io/badge/Gmail-EA4335?style=for-the-badge&logo=gmail&logoColor=white" alt="Email" /></a>
-<a href="https://github.com/vinay4955"><img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub" /></a>
 
 <br/><br/>
 <b>💻 કેમ છો! 👋 Coder by craft, Gujarati by roots.</b>
