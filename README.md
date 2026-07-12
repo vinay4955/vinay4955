@@ -4,8 +4,8 @@
 <!-- Animated terminal profile card — theme-aware (dark/light) -->
 <a href="https://github.com/vinay4955">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/vinay4955/vinay4955/main/dark.svg">
-    <img alt="Vinay Talaviya — profile card" src="https://raw.githubusercontent.com/vinay4955/vinay4955/main/light.svg" width="100%">
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/vinay4955/vinay4955/main/dark.svg?v=2">
+    <img alt="Vinay Talaviya — profile card" src="https://raw.githubusercontent.com/vinay4955/vinay4955/main/light.svg?v=2" width="100%">
   </picture>
 </a>
 
