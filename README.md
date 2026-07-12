@@ -89,6 +89,10 @@ class Vinay:
 
 <div align="center">
 
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=500&size=20&pause=1000&color=70A5FD&center=true&vCenter=true&width=720&height=45&lines=Building+in+public+every+day+%F0%9F%9A%80;Consistent+commits%2C+real+progress+%F0%9F%94%A5;Data+Pipelines+%E2%80%A2+ML+%E2%80%A2+NLP;Turning+commits+into+impact." alt="analytics typing" />
+
+<br/><br/>
+
 <img src="https://github-readme-streak-stats.herokuapp.com/?user=vinay4955&theme=tokyonight&hide_border=true&border_radius=10" alt="GitHub Streak" />
 
 <img src="https://github-readme-activity-graph.vercel.app/graph?username=vinay4955&theme=tokyo-night&hide_border=true&area=true" width="95%" alt="Activity Graph" />
