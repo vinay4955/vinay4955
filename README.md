@@ -1,35 +1,161 @@
 <!-- ============================ HEADER ============================ -->
 <div align="center">
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12,20,24&height=160&section=header&reversal=false" width="100%" alt="header" />
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12,20,24&height=180&section=header&text=Vinay%20Talaviya&fontColor=ffffff&fontSize=44&fontAlignY=32&desc=Aspiring%20Data%20Engineer%20%C2%B7%20Big%20Data%20%C2%B7%20AI%20%2F%20ML%20%2F%20DL&descAlignY=54&descSize=16" width="100%" alt="header" />
 
 <!-- Dynamic typing animation -->
 <a href="https://github.com/vinay4955">
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=28&pause=1000&color=70A5FD&center=true&vCenter=true&width=820&height=60&lines=Aspiring+Data+Engineer+%F0%9F%9B%A0%EF%B8%8F;Big+Data+Analytics+%7C+AI+%2F+ML+%2F+DL;NLP+%26+Data+Pipeline+Builder;Turning+raw+data+into+decisions." alt="Typing SVG" />
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=24&pause=1000&color=70A5FD&center=true&vCenter=true&width=820&height=55&lines=Turning+raw+data+into+decisions.;Building+end-to-end+data+pipelines.;NLP+%C2%B7+Deep+Learning+%C2%B7+MLOps;M.Sc+AI+%26+Data+Analytics+%40+HNU+Germany" alt="Typing SVG" />
 </a>
 
 <!-- Social badges -->
 <p>
-  <a href="https://www.linkedin.com/in/vinay-talaviya-2192791b7/"><img src="https://img.shields.io/badge/LinkedIn-Vinay_Talaviya-000000?style=flat-square&logo=linkedin&logoColor=white" alt="LinkedIn" /></a>
-  <a href="mailto:vinaytalaviya4955@gmail.com"><img src="https://img.shields.io/badge/Email-vinaytalaviya4955-000000?style=flat-square&logo=gmail&logoColor=white" alt="Email" /></a>
-  <a href="https://github.com/vinay4955"><img src="https://komarev.com/ghpvc/?username=vinay4955&color=000000&style=flat-square&label=Profile+Views" alt="Profile Views" /></a>
+  <a href="https://www.linkedin.com/in/vinay-talaviya-2192791b7/"><img src="https://img.shields.io/badge/LinkedIn-Vinay_Talaviya-0A66C2?style=flat-square&logo=linkedin&logoColor=white" alt="LinkedIn" /></a>
+  <a href="mailto:vinaytalaviya4955@gmail.com"><img src="https://img.shields.io/badge/Email-vinaytalaviya4955-EA4335?style=flat-square&logo=gmail&logoColor=white" alt="Email" /></a>
+  <img src="https://img.shields.io/badge/📍_Neu--Ulm,_Germany-1A1B27?style=flat-square" alt="Location" />
+  <img src="https://komarev.com/ghpvc/?username=vinay4955&color=70A5FD&style=flat-square&label=Profile+Views" alt="Profile Views" />
 </p>
-
-<img src="https://img.shields.io/badge/📍_Neu--Ulm,_Germany-1A1B27?style=for-the-badge" alt="Location" />
 
 </div>
 
----
+<!-- ============================ ABOUT ============================ -->
 
 ## 🧠 About Me
 
-- 🛠️ **Top skills:** Python, Data Engineering, AI / ML / DL
-- 🎓 CSE — specialized in **Big Data Analytics**
-- 🌱 Passionate about building **end-to-end data pipelines** & ML-powered web apps
-- 🔭 Currently exploring modern data-engineering tooling — Airflow, Databricks & MLOps
-- 🤝 Always open to collaboration and new ideas!
+```python
+class Vinay:
+    def __init__(self):
+        self.role      = "Aspiring Data Engineer"
+        self.education = "M.Sc — AI & Data Analytics @ Hochschule Neu-Ulm 🇩🇪"
+        self.base      = "CSE, specialized in Big Data Analytics"
+        self.focus     = ["Data Pipelines", "NLP", "Deep Learning", "MLOps"]
+        self.exploring = ["Airflow", "Databricks", "Spark", "Cloud Data Eng"]
+        self.mantra    = "Turn raw data into decisions."
 
----
+    def open_to(self):
+        return "collaboration · new ideas · data problems worth solving"
+```
+
+- 🎓 Pursuing **M.Sc. in Artificial Intelligence & Data Analytics** at Hochschule Neu-Ulm, Germany
+- 🛠️ Comfortable across the stack — from **PyTorch model internals** to **FastAPI services** and **data pipelines**
+- 🌱 Currently going deep on modern **data-engineering tooling** and **MLOps**
+- 🤝 Always open to collaboration — bring me a problem or an idea and let's build
+
+<!-- ============================ FEATURED PROJECTS ============================ -->
+
+## 🚀 Featured Projects
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+### 🔤 NLP — Universal Sentence Encoder
+From-scratch **PyTorch** re-implementation of the Universal Sentence Encoder (Cer et al., 2018) — both **DAN** & **Transformer** encoders, with semantic-similarity (STS-B) and transfer-learning (SST-2) experiments.
+
+`PyTorch` `NLP` `Sentence Embeddings` `Transformer`
+
+<a href="https://github.com/vinay4955/NLP-Universal-Sentence-Encoder">→ View Repo</a>
+
+</td>
+<td width="50%" valign="top">
+
+### 🎯 Job Application Project
+A **Python / FastAPI** automation platform that scrapes and organizes job listings — personal end-to-end build covering scraping, storage, and an API layer.
+
+`Python` `FastAPI` `Automation` `Scraping`
+
+<a href="https://github.com/vinay4955/Job-Application-project">→ View Repo</a>
+
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
+### 📈 Time Series Analysis
+Forecasting notebook exploring **time-series decomposition, modeling, and future prediction** on real-world data.
+
+`Jupyter` `Forecasting` `Pandas` `Statsmodels`
+
+<a href="https://github.com/vinay4955/TIME-SERIES-ANALYSIS-FOR-FUTURE-PREDICTION">→ View Repo</a>
+
+</td>
+<td width="50%" valign="top">
+
+### 🛡️ Routing-Guard
+A **Python** experiment in intelligent request routing / guarding — routing logic with safety-first defaults.
+
+`Python` `Routing` `Guardrails`
+
+<a href="https://github.com/vinay4955/Routing-Guard">→ View Repo</a>
+
+</td>
+</tr>
+</table>
+
+<div align="center">
+<a href="https://github.com/vinay4955?tab=repositories"><img src="https://img.shields.io/badge/See_all_repositories-1A1B27?style=for-the-badge&logo=github&logoColor=70A5FD" alt="All repos" /></a>
+</div>
+
+<!-- ============================ TECH STACK ============================ -->
+
+## 🛠️ Tech Stack
+
+<div align="center">
+
+**Languages**
+
+![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![SQL](https://img.shields.io/badge/SQL-4479A1?style=for-the-badge&logo=postgresql&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
+![Java](https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
+
+**Data · ML · AI**
+
+![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)
+![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E?style=for-the-badge&logo=scikitlearn&logoColor=white)
+![Pandas](https://img.shields.io/badge/Pandas-150458?style=for-the-badge&logo=pandas&logoColor=white)
+![NumPy](https://img.shields.io/badge/NumPy-013243?style=for-the-badge&logo=numpy&logoColor=white)
+![Matplotlib](https://img.shields.io/badge/Matplotlib-11557C?style=for-the-badge&logo=python&logoColor=white)
+![Jupyter](https://img.shields.io/badge/Jupyter-F37626?style=for-the-badge&logo=jupyter&logoColor=white)
+
+**Data Engineering · Backend**
+
+![Apache Airflow](https://img.shields.io/badge/Airflow-017CEE?style=for-the-badge&logo=apacheairflow&logoColor=white)
+![Apache Spark](https://img.shields.io/badge/Spark-E25A1C?style=for-the-badge&logo=apachespark&logoColor=white)
+![Databricks](https://img.shields.io/badge/Databricks-FF3621?style=for-the-badge&logo=databricks&logoColor=white)
+![DuckDB](https://img.shields.io/badge/DuckDB-FFF000?style=for-the-badge&logo=duckdb&logoColor=black)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+
+**Cloud · Tools**
+
+![Azure](https://img.shields.io/badge/Azure-0078D4?style=for-the-badge&logo=microsoftazure&logoColor=white)
+![Git](https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white)
+![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)
+![VS Code](https://img.shields.io/badge/VS%20Code-007ACC?style=for-the-badge&logo=visualstudiocode&logoColor=white)
+![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black)
+
+</div>
+
+<!-- ============================ STATS ============================ -->
+
+## 📊 GitHub Analytics
+
+<div align="center">
+
+<img height="165" src="https://github-readme-stats.vercel.app/api?username=vinay4955&show_icons=true&theme=tokyonight&hide_border=true&include_all_commits=true&count_private=true&card_width=490" alt="GitHub Stats" />
+<img height="165" src="https://github-readme-stats.vercel.app/api/top-langs/?username=vinay4955&layout=compact&theme=tokyonight&hide_border=true&langs_count=8&card_width=340" alt="Top Languages" />
+
+<img src="https://github-readme-streak-stats.herokuapp.com/?user=vinay4955&theme=tokyonight&hide_border=true&border_radius=10" alt="GitHub Streak" />
+
+<img src="https://github-profile-trophy.vercel.app/?username=vinay4955&theme=tokyonight&no-frame=true&no-bg=true&column=7&margin-w=8" alt="Trophies" />
+
+<img src="https://github-readme-activity-graph.vercel.app/graph?username=vinay4955&theme=tokyo-night&hide_border=true&area=true" width="95%" alt="Activity Graph" />
+
+</div>
+
+<!-- ============================ EDUCATION & CERTS ============================ -->
 
 ## 🎓 Education
 
@@ -37,8 +163,6 @@
 |:--|:--|:--|
 | 🎓 **M.Sc. — Artificial Intelligence & Data Analytics** | Hochschule Neu-Ulm · Germany 🇩🇪 | `Oct 2025 – Present` |
 | 🎓 **B.Tech — Computer Science & Engineering** *(Big Data Analytics)* | Parul University · India 🇮🇳 | `Jul 2020 – May 2024` |
-
----
 
 ## 📜 Certifications
 
@@ -49,75 +173,17 @@
 | 💼 **Virtual Experience** | Data Science Job Simulation *(British Airways)* · Data Analytics Consulting *(KPMG)* |
 | 🛠️ **Tools & More** | Jira Project Management *(Great Learning)* · Introduction to IoT *(Stanford)* · Parul Let's Hack *(Hackathon)* · MBTI Personality Prediction *(Tech Expo 2024)* |
 
----
-
-## 🛠️ Tech Stack
-
-<div align="center">
-
-### Languages
-![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
-![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
-![SQL](https://img.shields.io/badge/SQL-4479A1?style=for-the-badge&logo=postgresql&logoColor=white)
-![Java](https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
-![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
-![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
-
-### Data · ML · AI
-![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)
-![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E?style=for-the-badge&logo=scikitlearn&logoColor=white)
-![Pandas](https://img.shields.io/badge/Pandas-150458?style=for-the-badge&logo=pandas&logoColor=white)
-![NumPy](https://img.shields.io/badge/NumPy-013243?style=for-the-badge&logo=numpy&logoColor=white)
-![Matplotlib](https://img.shields.io/badge/Matplotlib-11557C?style=for-the-badge&logo=python&logoColor=white)
-![Jupyter](https://img.shields.io/badge/Jupyter-F37626?style=for-the-badge&logo=jupyter&logoColor=white)
-
-### Backend · Data Engineering
-![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
-![Apache Airflow](https://img.shields.io/badge/Airflow-017CEE?style=for-the-badge&logo=apacheairflow&logoColor=white)
-![Databricks](https://img.shields.io/badge/Databricks-FF3621?style=for-the-badge&logo=databricks&logoColor=white)
-![DuckDB](https://img.shields.io/badge/DuckDB-FFF000?style=for-the-badge&logo=duckdb&logoColor=black)
-![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
-![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
-
-### Tools
-![Git](https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white)
-![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)
-![VS Code](https://img.shields.io/badge/VS%20Code-007ACC?style=for-the-badge&logo=visualstudiocode&logoColor=white)
-![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black)
-
-</div>
-
----
-
-## 📊 GitHub Stats
-
-<div align="center">
-
-<img src="https://github-readme-streak-stats.herokuapp.com/?user=vinay4955&theme=tokyonight&hide_border=true&border_radius=10" alt="GitHub Streak" />
-
-</div>
-
----
-
-## 📈 Contribution Graph
-
-<div align="center">
-
-<img src="https://github-readme-activity-graph.vercel.app/graph?username=vinay4955&theme=tokyo-night&hide_border=true&area=true" width="95%" alt="Activity Graph" />
-
-</div>
-
----
+<!-- ============================ CONNECT ============================ -->
 
 ## 🤝 Connect With Me
 
 <div align="center">
 
-<a href="https://www.linkedin.com/in/vinay-talaviya-2192791b7/"><img src="https://img.shields.io/badge/LinkedIn-Vinay_Talaviya-000000?style=flat-square&logo=linkedin&logoColor=white" alt="LinkedIn" /></a>
-<a href="mailto:vinaytalaviya4955@gmail.com"><img src="https://img.shields.io/badge/Email-vinaytalaviya4955-000000?style=flat-square&logo=gmail&logoColor=white" alt="Email" /></a>
+<a href="https://www.linkedin.com/in/vinay-talaviya-2192791b7/"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" /></a>
+<a href="mailto:vinaytalaviya4955@gmail.com"><img src="https://img.shields.io/badge/Gmail-EA4335?style=for-the-badge&logo=gmail&logoColor=white" alt="Email" /></a>
+<a href="https://github.com/vinay4955"><img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub" /></a>
 
-<br/>
+<br/><br/>
 <b>💻 કેમ છો! 👋 Coder by craft, Gujarati by roots.</b>
 <br/>
 <i>Bring me a problem or an idea — and together, we can build anything.</i>
