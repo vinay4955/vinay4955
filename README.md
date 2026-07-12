@@ -4,8 +4,8 @@
 <!-- Animated terminal profile card — theme-aware (dark/light), doubles as the About/bio -->
 <a href="https://github.com/vinay4955">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/vinay4955/vinay4955/main/dark.svg?v=3">
-    <img alt="Vinay Talaviya — Data Engineer · AI/ML. M.Sc AI & Data Analytics @ Hochschule Neu-Ulm. Python, SQL, PyTorch, Airflow, Spark, Databricks, FastAPI, Azure." src="https://raw.githubusercontent.com/vinay4955/vinay4955/main/light.svg?v=3" width="100%">
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/vinay4955/vinay4955/main/dark.svg?v=4">
+    <img alt="Vinay Talaviya — Data Engineer · AI/ML. M.Sc AI & Data Analytics @ Hochschule Neu-Ulm. Python, SQL, PyTorch, Airflow, Spark, Databricks, FastAPI, Azure." src="https://raw.githubusercontent.com/vinay4955/vinay4955/main/light.svg?v=4" width="100%">
   </picture>
 </a>
 
