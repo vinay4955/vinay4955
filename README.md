@@ -1,7 +1,7 @@
 <!-- ============================ HEADER ============================ -->
 <div align="center">
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12,20,24&height=180&section=header&text=Vinay%20Talaviya&fontColor=ffffff&fontSize=44&fontAlignY=32&desc=Aspiring%20Data%20Engineer%20%C2%B7%20Big%20Data%20%C2%B7%20AI%20%2F%20ML%20%2F%20DL&descAlignY=54&descSize=16" width="100%" alt="header" />
+<img src="https://raw.githubusercontent.com/vinay4955/vinay4955/main/assets/header.svg" width="100%" alt="header" />
 
 <!-- Dynamic typing animation -->
 <a href="https://github.com/vinay4955">
@@ -188,6 +188,6 @@ A **Python** experiment in intelligent request routing / guarding — routing lo
 <br/>
 <i>Bring me a problem or an idea — and together, we can build anything.</i>
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12,20,24&height=120&section=footer" width="100%" alt="footer" />
+<img src="https://raw.githubusercontent.com/vinay4955/vinay4955/main/assets/footer.svg" width="100%" alt="footer" />
 
 </div>
