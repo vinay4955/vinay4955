@@ -1,4 +1,4 @@
-<!-- ============================ HEADER ============================ -->
+<!--============================ HEADER ============================-->
 <div align="center">
 
 <img src="https://raw.githubusercontent.com/vinay4955/vinay4955/main/assets/header.svg" width="100%" alt="header" />
