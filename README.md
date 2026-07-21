@@ -64,7 +64,7 @@
 
 <div align="center">
 
-<img src="https://github-readme-streak-stats.herokuapp.com/?user=vinay4955&theme=tokyonight&hide_border=true&border_radius=10" alt="GitHub Streak" />
+<img src="https://raw.githubusercontent.com/vinay4955/vinay4955/main/profile/streak.svg" alt="GitHub Streak" />
 
 <img src="https://github-readme-activity-graph.vercel.app/graph?username=vinay4955&theme=tokyo-night&hide_border=true&area=true" width="95%" alt="Activity Graph" />
 
