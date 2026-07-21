@@ -1,0 +1,40 @@
+name: Generate Streak Stats
+
+# Renders the GitHub streak card to a committed SVG (profile/streak.svg)
+# using the workflow's own GitHub token — so it uses OUR API quota and never
+# hits the shared public-server "Failed to retrieve contributions" error.
+# Runs on every push, daily, and on demand — so it always reflects your latest work.
+on:
+  schedule:
+    - cron: "30 3 * * *"     # once a day
+  workflow_dispatch:          # manual / on-demand trigger
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: write
+
+jobs:
+  streak:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Generate streak card
+        uses: DenverCoder1/github-readme-streak-stats@v1.7.0
+        with:
+          # For PRIVATE contributions to count, create a repo secret named
+          # STREAK_TOKEN (a PAT with `repo` scope) and swap the line below to:
+          #   token: ${{ secrets.STREAK_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: profile/streak.svg
+          options: >-
+            user=vinay4955&theme=tokyonight&hide_border=true&border_radius=10
+
+      - name: Commit updated streak SVG
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: update streak stats"
+          file_pattern: profile/streak.svg
