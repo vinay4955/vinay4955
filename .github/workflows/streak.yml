@@ -1,9 +1,11 @@
-name: Generate Streak Stats
+name: Generate Analytics Cards
 
-# Renders the GitHub streak card to a committed SVG (profile/streak.svg)
-# using the workflow's own GitHub token — so it uses OUR API quota and never
-# hits the shared public-server "Failed to retrieve contributions" error.
-# Runs on every push, daily, and on demand — so it always reflects your latest work.
+# Renders the GitHub Analytics cards to committed SVGs under profile/:
+#   - profile/streak.svg          (streak stats, via the first-party action + our token)
+#   - profile/activity-graph.svg  (activity graph, fetched and committed)
+# Serving them from our own repo means they always render and never hit the
+# shared public-server "Failed to retrieve contributions" error.
+# Runs on every push, daily, and on demand — so they always reflect your latest work.
 on:
   schedule:
     - cron: "30 3 * * *"     # once a day
@@ -15,7 +17,7 @@ permissions:
   contents: write
 
 jobs:
-  streak:
+  cards:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -33,8 +35,25 @@ jobs:
           options: >-
             user=vinay4955&theme=tokyonight&hide_border=true&border_radius=10
 
-      - name: Commit updated streak SVG
+      - name: Fetch activity graph
+        run: |
+          mkdir -p profile
+          url="https://github-readme-activity-graph.vercel.app/graph?username=vinay4955&theme=tokyo-night&hide_border=true&area=true"
+          tmp="$(mktemp)"
+          # Only overwrite the committed card if we got a real SVG back — a failed
+          # or rate-limited fetch keeps the last good graph instead of breaking it.
+          if curl -fsS --max-time 30 "$url" -o "$tmp" \
+            && head -c 200 "$tmp" | grep -q "<svg" \
+            && ! grep -qi "failed to retrieve" "$tmp"; then
+            mv "$tmp" profile/activity-graph.svg
+            echo "activity graph updated"
+          else
+            echo "fetch failed or returned an error card — keeping the previous graph"
+            rm -f "$tmp"
+          fi
+
+      - name: Commit updated cards
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "chore: update streak stats"
-          file_pattern: profile/streak.svg
+          commit_message: "update analytics cards"
+          file_pattern: profile/*.svg
