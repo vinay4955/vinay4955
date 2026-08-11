@@ -44,12 +44,12 @@
     .ascii  { font-family: 'Courier New', Consolas, monospace; font-size: 7.4px; fill: url(#asciiGrad); letter-spacing: -0.2px; }
     .key    { font-family: 'Courier New', Consolas, monospace; font-size: 15px; fill: #22D3EE; font-weight: bold; }
     .value  { font-family: 'Courier New', Consolas, monospace; font-size: 15px; fill: #E5E7EB; }
-    .cc     { font-family: 'Courier New', Consolas, monospace; font-size: 15px; fill: #475569; }
-    .head   { font-family: 'Courier New', Consolas, monospace; font-size: 17px; fill: #7C3AED; font-weight: bold; }
+    .cc     { font-family: 'Courier New', Consolas, monospace; font-size: 15px; fill: #64748B; }
+    .head   { font-family: 'Courier New', Consolas, monospace; font-size: 17px; fill: #A78BFA; font-weight: bold; }
     .accent { font-family: 'Courier New', Consolas, monospace; font-size: 15px; fill: #10B981; font-weight: bold; }
     text, tspan { white-space: pre; }
     
-    .term-label { font-family: 'Courier New', Consolas, monospace; font-size: 12px; fill: #64748B; letter-spacing: 0.5px; }
+    .term-label { font-family: 'Courier New', Consolas, monospace; font-size: 12px; fill: #94A3B8; letter-spacing: 0.5px; }
     .scan-label { font-family: 'Courier New', Consolas, monospace; font-size: 10px; fill: #F87171; letter-spacing: 1px; }
     .panel-title { font-family: 'Courier New', Consolas, monospace; font-size: 11px; fill: #38BDF8; letter-spacing: 2px; opacity: 0.7; }
     .cursor-blink { fill: #22D3EE; }
