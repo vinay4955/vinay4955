@@ -24,7 +24,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Generate streak card
+      - name: Generate streak card (dark)
         uses: DenverCoder1/github-readme-streak-stats@v1.7.0
         with:
           # For PRIVATE contributions to count, create a repo secret named
@@ -35,22 +35,34 @@ jobs:
           options: >-
             user=vinay4955&theme=tokyonight&hide_border=true&border_radius=10
 
+      - name: Generate streak card (light)
+        uses: DenverCoder1/github-readme-streak-stats@v1.7.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: profile/streak-light.svg
+          options: >-
+            user=vinay4955&theme=default&hide_border=true&border_radius=10
+
       - name: Fetch activity graph
         run: |
           mkdir -p profile
-          url="https://github-readme-activity-graph.vercel.app/graph?username=vinay4955&theme=tokyo-night&hide_border=true&area=true"
-          tmp="$(mktemp)"
-          # Only overwrite the committed card if we got a real SVG back — a failed
+          # Only overwrite a committed card if we got a real SVG back — a failed
           # or rate-limited fetch keeps the last good graph instead of breaking it.
-          if curl -fsS --max-time 30 "$url" -o "$tmp" \
-            && head -c 200 "$tmp" | grep -q "<svg" \
-            && ! grep -qi "failed to retrieve" "$tmp"; then
-            mv "$tmp" profile/activity-graph.svg
-            echo "activity graph updated"
-          else
-            echo "fetch failed or returned an error card — keeping the previous graph"
-            rm -f "$tmp"
-          fi
+          fetch() {
+            theme="$1"; out="$2"; tmp="$(mktemp)"
+            url="https://github-readme-activity-graph.vercel.app/graph?username=vinay4955&theme=${theme}&hide_border=true&area=true"
+            if curl -fsS --max-time 30 "$url" -o "$tmp" \
+              && head -c 200 "$tmp" | grep -q "<svg" \
+              && ! grep -qi "failed to retrieve" "$tmp"; then
+              mv "$tmp" "$out"
+              echo "updated $out"
+            else
+              echo "fetch failed for theme=$theme — keeping the previous $out"
+              rm -f "$tmp"
+            fi
+          }
+          fetch tokyo-night  profile/activity-graph.svg
+          fetch github-light profile/activity-graph-light.svg
 
       - name: Commit updated cards
         uses: stefanzweifel/git-auto-commit-action@v5
