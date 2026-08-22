@@ -4,8 +4,8 @@
 <!-- Animated terminal profile card — theme-aware (dark/light), doubles as the About/bio -->
 <a href="https://github.com/vinay4955">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/vinay4955/vinay4955/main/dark.svg?v=7">
-    <img alt="Vinay Talaviya — Data Engineer · AI/ML Enthusiast. M.Sc AI & Data Analytics @ Hochschule Neu-Ulm, Germany. Python, SQL, PyTorch, Airflow, Spark, Databricks, FastAPI, Azure." src="https://raw.githubusercontent.com/vinay4955/vinay4955/main/light.svg?v=7" width="100%">
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/vinay4955/vinay4955/main/dark.svg?v=8">
+    <img alt="Vinay Talaviya — Data Engineering · Analytics · BI. M.Sc AI & Data Analytics @ Hochschule Neu-Ulm, Germany. Python, SQL, Kafka, Databricks, Snowflake, Power BI, FastAPI, PyTorch, Azure." src="https://raw.githubusercontent.com/vinay4955/vinay4955/main/light.svg?v=8" width="100%">
   </picture>
 </a>
 
@@ -108,14 +108,16 @@
 | 🎓 **M.Sc. — Artificial Intelligence & Data Analytics** | Hochschule Neu-Ulm · Germany 🇩🇪 | `Oct 2025 – Present` |
 | 🎓 **B.Tech — Computer Science & Engineering** *(Big Data Analytics)* | Parul University · India 🇮🇳 | `Jul 2020 – May 2024` |
 
+<sub>**M.Sc. focus** — Big Data & AI · Advanced NLP · Deep Learning · Data Platform Architectures · Digital Process Management · Cybersecurity Management<br/>
+**B.Tech focus** — Big Data Analytics · Business Intelligence · Machine Learning · Data Mining · Big Data on Cloud · Data Visualization</sub>
+
 ## 📜 Certifications
 
 | Category | Certifications |
 |:--|:--|
-| ☁️ **Microsoft & Cloud** | Azure Fundamentals · Azure AI Fundamentals · Azure Data Fundamentals · Microsoft 365 Fundamentals · Cloud Computing |
-| 🤖 **ML & Data Science** | Machine Learning *(DeepLearning.AI)* · Data Science with Python · ML Fast Track · Advanced Trends in ML |
-| 💼 **Virtual Experience** | Data Science Job Simulation *(British Airways)* · Data Analytics Consulting *(KPMG)* |
-| 🛠️ **Tools & More** | Jira Project Management *(Great Learning)* · Introduction to IoT *(Stanford)* · Parul Let's Hack *(Hackathon)* · MBTI Personality Prediction *(Tech Expo 2024)* |
+| ☁️ **Microsoft & Cloud** | Azure Fundamentals *(AZ-900)* · Azure Data Fundamentals *(DP-900)* · Microsoft 365 Fundamentals *(MS-900)* · Cloud Computing |
+| 🤖 **ML & Data Science** | Machine Learning *(DeepLearning.AI)* · Data Science with Python · Machine Learning Fast Track · Advanced Trends in ML Techniques |
+| 🛠️ **Tools & Methods** | Jira Project Management *(Great Learning)* · Introduction to IoT *(Stanford)* |
 
 <!-- ============================ CONNECT ============================ -->
 
@@ -124,6 +126,7 @@
 <div align="center">
 
 <a href="https://www.linkedin.com/in/vinay-talaviya-2192791b7/"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" /></a>
+<a href="https://vinay4955-portfolio.vercel.app"><img src="https://img.shields.io/badge/Portfolio-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Portfolio" /></a>
 <a href="mailto:vinaytalaviya4955@gmail.com"><img src="https://img.shields.io/badge/Gmail-EA4335?style=for-the-badge&logo=gmail&logoColor=white" alt="Email" /></a>
 
 <br/><br/>
