@@ -108,9 +108,6 @@
 | 🎓 **M.Sc. — Artificial Intelligence & Data Analytics** | Hochschule Neu-Ulm · Germany 🇩🇪 | `Oct 2025 – Present` |
 | 🎓 **B.Tech — Computer Science & Engineering** *(Big Data Analytics)* | Parul University · India 🇮🇳 | `Jul 2020 – May 2024` |
 
-<sub>**M.Sc. focus** — Big Data & AI · Advanced NLP · Deep Learning · Data Platform Architectures · Digital Process Management · Cybersecurity Management<br/>
-**B.Tech focus** — Big Data Analytics · Business Intelligence · Machine Learning · Data Mining · Big Data on Cloud · Data Visualization</sub>
-
 ## 📜 Certifications
 
 | Category | Certifications |
@@ -126,7 +123,6 @@
 <div align="center">
 
 <a href="https://www.linkedin.com/in/vinay-talaviya-2192791b7/"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" /></a>
-<a href="https://vinay4955-portfolio.vercel.app"><img src="https://img.shields.io/badge/Portfolio-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Portfolio" /></a>
 <a href="mailto:vinaytalaviya4955@gmail.com"><img src="https://img.shields.io/badge/Gmail-EA4335?style=for-the-badge&logo=gmail&logoColor=white" alt="Email" /></a>
 
 <br/><br/>
