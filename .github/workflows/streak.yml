@@ -22,8 +22,11 @@ name: Generate Analytics Cards
 # at most once a day. The later slots exist purely as retries for dropped runs.
 on:
   schedule:
+    # Primary: the 08:00 Berlin window, in both seasons.
     - cron: "2,9,17,31,49 6 * * *"    # 08:02-08:49 Berlin while CEST is in effect
     - cron: "2,9,17,31,49 7 * * *"    # 08:02-08:49 Berlin while CET  is in effect
+    # Catch-up: if every slot above got dropped, these still rescue the day.
+    - cron: "13 8,10,12,14,16,18,20,22 * * *"
   workflow_dispatch:                  # manual / on-demand trigger
   push:
     branches: [ main ]
@@ -64,24 +67,27 @@ jobs:
           fi
 
           now_local="$(date '+%Y-%m-%d %H:%M %Z')"
-
-          # Only the slots that land inside the 08:00 Berlin hour may proceed.
-          # The rest are the other season's crons, or retries that arrived late.
-          if [ "$(date +%H)" != "08" ]; then
-            echo "run=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::$now_local is outside the 08:00 window - skipping"
-            exit 0
-          fi
-
-          # First slot of the day to get here wins; the rest become no-ops.
           today="$(date +%F)"
           last="$(git log -1 --format=%cd --date=format-local:%F -- profile/ || true)"
+
+          # Already done today - every later slot becomes a no-op. This is what
+          # keeps 17 scheduled runs a day down to a single commit.
           if [ "$last" = "$today" ]; then
             echo "run=false" >> "$GITHUB_OUTPUT"
             echo "::notice::cards already updated today ($today) - skipping"
             exit 0
           fi
 
+          # Not yet 08:00 Berlin - hold, so the daily refresh lands in the morning
+          # rather than at whatever hour the first cron of the day happens to fire.
+          if [ "$(date +%H)" \< "08" ]; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::$now_local is before the 08:00 window - holding"
+            exit 0
+          fi
+
+          # Stale and past 08:00: do the work. Any slot from 08:00 to midnight
+          # qualifies, so the day is only lost if EVERY run is dropped.
           echo "run=true" >> "$GITHUB_OUTPUT"
           echo "::notice::$now_local, cards last updated ${last:-never} - running"
 
