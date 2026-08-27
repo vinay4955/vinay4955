@@ -43,7 +43,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           # The gate reads when profile/ last changed, so it needs real history.
           fetch-depth: 0
@@ -130,7 +130,7 @@ jobs:
 
       - name: Commit updated cards
         if: steps.gate.outputs.run == 'true'
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: "update analytics cards"
           file_pattern: profile/*.svg
