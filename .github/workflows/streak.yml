@@ -5,16 +5,37 @@ name: Generate Analytics Cards
 #   - profile/activity-graph.svg  (activity graph, fetched and committed)
 # Serving them from our own repo means they always render and never hit the
 # shared public-server "Failed to retrieve contributions" error.
-# Runs on every push, daily, and on demand — so they always reflect your latest work.
+#
+# SCHEDULING NOTE — read before touching the cron lines.
+# GitHub cron is UTC-only and runs on a shared best-effort queue. A single daily
+# cron is NOT reliable: over Aug 2026 this workflow was scheduled for 03:30 UTC
+# and never once started on time (delays of 40min to 3h14m), and on 2026-08-27 the
+# run was dropped entirely with no error and no notification. Round-number minutes
+# (:00, :15, :30, :45) are the most contended slots on the platform.
+#
+# So instead of one cron we fire a spread of odd-minute slots and let the gate
+# step below decide which one actually does the work:
+#   - hour 6 UTC covers 08:00 Berlin in summer (CEST, UTC+2)
+#   - hour 7 UTC covers 08:00 Berlin in winter (CET,  UTC+1)
+# The gate only proceeds when the LOCAL Berlin hour is 08 and the cards have not
+# already been updated today, so DST is handled automatically and we still commit
+# at most once a day. The later slots exist purely as retries for dropped runs.
 on:
   schedule:
-    - cron: "30 3 * * *"     # once a day
-  workflow_dispatch:          # manual / on-demand trigger
+    - cron: "2,9,17,31,49 6 * * *"    # 08:02-08:49 Berlin while CEST is in effect
+    - cron: "2,9,17,31,49 7 * * *"    # 08:02-08:49 Berlin while CET  is in effect
+  workflow_dispatch:                  # manual / on-demand trigger
   push:
     branches: [ main ]
 
 permissions:
   contents: write
+
+# A push run and a scheduled run can overlap. Queue them instead of letting both
+# race to push - and never cancel, or the survivor may be the one that skips.
+concurrency:
+  group: analytics-cards
+  cancel-in-progress: false
 
 jobs:
   cards:
@@ -23,8 +44,49 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # The gate reads when profile/ last changed, so it needs real history.
+          fetch-depth: 0
+
+      - name: Decide whether this run should do the work
+        id: gate
+        env:
+          TZ: Europe/Berlin
+          EVENT: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+
+          # Manual runs and pushes are always intentional - never gate them.
+          if [ "$EVENT" != "schedule" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::$EVENT trigger - running unconditionally"
+            exit 0
+          fi
+
+          now_local="$(date '+%Y-%m-%d %H:%M %Z')"
+
+          # Only the slots that land inside the 08:00 Berlin hour may proceed.
+          # The rest are the other season's crons, or retries that arrived late.
+          if [ "$(date +%H)" != "08" ]; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::$now_local is outside the 08:00 window - skipping"
+            exit 0
+          fi
+
+          # First slot of the day to get here wins; the rest become no-ops.
+          today="$(date +%F)"
+          last="$(git log -1 --format=%cd --date=format-local:%F -- profile/ || true)"
+          if [ "$last" = "$today" ]; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::cards already updated today ($today) - skipping"
+            exit 0
+          fi
+
+          echo "run=true" >> "$GITHUB_OUTPUT"
+          echo "::notice::$now_local, cards last updated ${last:-never} - running"
 
       - name: Generate streak card (dark)
+        if: steps.gate.outputs.run == 'true'
         uses: DenverCoder1/github-readme-streak-stats@v1.7.0
         with:
           # For PRIVATE contributions to count, create a repo secret named
@@ -36,6 +98,7 @@ jobs:
             user=vinay4955&theme=tokyonight&hide_border=true&border_radius=10
 
       - name: Generate streak card (light)
+        if: steps.gate.outputs.run == 'true'
         uses: DenverCoder1/github-readme-streak-stats@v1.7.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -44,6 +107,7 @@ jobs:
             user=vinay4955&theme=default&hide_border=true&border_radius=10
 
       - name: Fetch activity graph
+        if: steps.gate.outputs.run == 'true'
         run: |
           mkdir -p profile
           # Only overwrite a committed card if we got a real SVG back — a failed
@@ -65,6 +129,7 @@ jobs:
           fetch github-light profile/activity-graph-light.svg
 
       - name: Commit updated cards
+        if: steps.gate.outputs.run == 'true'
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "update analytics cards"
