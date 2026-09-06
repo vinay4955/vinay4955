@@ -1,8 +1,9 @@
 name: Generate Analytics Cards
 
 # Renders every card in the README's GitHub Analytics section to committed SVGs
-# under profile/, all four from scripts/generate_cards.py, which reads GitHub's
-# own GraphQL contribution calendar.
+# under profile/:  streak.svg, streak-light.svg, activity-graph.svg,
+# activity-graph-light.svg. All four come from scripts/generate_cards.py, which
+# reads GitHub's own GraphQL contribution calendar.
 #
 # WHY THERE IS NO THIRD-PARTY SERVICE HERE - read before "simplifying" this.
 # The activity graph used to be downloaded, pre-rendered, from
@@ -17,36 +18,33 @@ name: Generate Analytics Cards
 #   2. Nothing here may fail quietly. If the data cannot be fetched the job goes
 #      red. A stale card that still looks fine is the failure we are avoiding.
 #
-# SCHEDULING NOTE — read before touching the cron lines.
-# GitHub cron is UTC-only and runs on a shared best-effort queue. A single daily
-# cron is NOT reliable: over Aug 2026 this workflow was scheduled for 03:30 UTC
-# and never once started on time (delays of 40min to 3h14m), and on 2026-08-27 the
-# run was dropped entirely with no error and no notification. Round-number minutes
-# (:00, :15, :30, :45) are the most contended slots on the platform.
-#
-# So instead of one cron we fire a spread of odd-minute slots and let the gate
-# step below decide which one actually does the work:
-#   - hour 6 UTC covers 08:00 Berlin in summer (CEST, UTC+2)
-#   - hour 7 UTC covers 08:00 Berlin in winter (CET,  UTC+1)
-# The gate only proceeds when the LOCAL Berlin hour is 08 and the cards have not
-# already been updated today, so DST is handled automatically and we still commit
-# at most once a day. The later slots exist purely as retries for dropped runs.
+# SCHEDULING - read before touching the cron lines.
+# GitHub cron is UTC-only and best-effort: a single daily cron is not reliable
+# (through Aug 2026 this workflow's one cron ran 40min-3h14m late every time,
+# then was dropped outright). Round minutes (:00 :15 :30 :45) are the most
+# contended. So we fire several odd-minute slots and let the gate decide which
+# one works. The target window is 01:00-02:59 Europe/Berlin, year round:
+#   UTC 23 -> Berlin 01 (CEST) / 00 (CET)
+#   UTC 00 -> Berlin 02 (CEST) / 01 (CET)
+#   UTC 01 -> Berlin 03 (CEST) / 02 (CET)
+# The gate accepts only Berlin hours 01 and 02, so each season gets two live
+# hours and DST needs no maintenance.
 on:
   schedule:
-    # Primary: the 08:00 Berlin window, in both seasons.
-    - cron: "2,9,17,31,49 6 * * *"    # 08:02-08:49 Berlin while CEST is in effect
-    - cron: "2,9,17,31,49 7 * * *"    # 08:02-08:49 Berlin while CET  is in effect
-    # Catch-up: if every slot above got dropped, these still rescue the day.
-    - cron: "13 8,10,12,14,16,18,20,22 * * *"
-  workflow_dispatch:                  # manual / on-demand trigger
+    - cron: "3,11,23,37,53 23 * * *"
+    - cron: "3,11,23,37,53 0 * * *"
+    - cron: "3,11,23,37,53 1 * * *"
+    # Rescue sweep. These only act if the cards are already MORE than a day
+    # stale, i.e. every slot in the night window was dropped. Normal days never
+    # reach them. Without this a lost night silently becomes a lost week.
+    - cron: "17 9,15,21 * * *"
+  workflow_dispatch:
   push:
     branches: [ main ]
 
 permissions:
   contents: write
 
-# A push run and a scheduled run can overlap. Queue them instead of letting both
-# race to push - and never cancel, or the survivor may be the one that skips.
 concurrency:
   group: analytics-cards
   cancel-in-progress: false
@@ -70,37 +68,40 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Manual runs and pushes are always intentional - never gate them.
           if [ "$EVENT" != "schedule" ]; then
             echo "run=true" >> "$GITHUB_OUTPUT"
             echo "::notice::$EVENT trigger - running unconditionally"
             exit 0
           fi
 
-          now_local="$(date '+%Y-%m-%d %H:%M %Z')"
+          now="$(date '+%Y-%m-%d %H:%M %Z')"
           today="$(date +%F)"
+          yesterday="$(date -d 'yesterday' +%F)"
+          hour="$(date +%H)"
           last="$(git log -1 --format=%cd --date=format-local:%F -- profile/ || true)"
 
-          # Already done today - every later slot becomes a no-op. This is what
-          # keeps 17 scheduled runs a day down to a single commit.
           if [ "$last" = "$today" ]; then
             echo "run=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::cards already updated today ($today) - skipping"
+            echo "::notice::already updated today ($today) - skipping"
             exit 0
           fi
 
-          # Not yet 08:00 Berlin - hold, so the daily refresh lands in the morning
-          # rather than at whatever hour the first cron of the day happens to fire.
-          if [ "$(date +%H)" \< "08" ]; then
+          # Rescue path: more than a day behind means the whole night window was
+          # dropped. Refresh now rather than wait and let the gap grow.
+          if [ -n "$last" ] && [ "$last" \< "$yesterday" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            echo "::warning::cards last updated $last - overdue, running at $now"
+            exit 0
+          fi
+
+          # Normal path: only inside the 01:00-02:59 Berlin window.
+          if [ "$hour" = "01" ] || [ "$hour" = "02" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::$now is in the 01:00-03:00 window - running"
+          else
             echo "run=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::$now_local is before the 08:00 window - holding"
-            exit 0
+            echo "::notice::$now is outside the 01:00-03:00 window - holding"
           fi
-
-          # Stale and past 08:00: do the work. Any slot from 08:00 to midnight
-          # qualifies, so the day is only lost if EVERY run is dropped.
-          echo "run=true" >> "$GITHUB_OUTPUT"
-          echo "::notice::$now_local, cards last updated ${last:-never} - running"
 
       - name: Render the cards
         if: steps.gate.outputs.run == 'true'
