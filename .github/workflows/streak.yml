@@ -106,13 +106,17 @@ jobs:
       - name: Render the cards
         if: steps.gate.outputs.run == 'true'
         env:
-          # Pin the render to UTC. The gate reasons in Berlin time (that is the
-          # schedule the cards are FOR), but the dates printed INTO the cards and
-          # the dates the verify step checks must come from one clock or the two
-          # disagree for the 1-2h each night when Berlin is already on the next
-          # day. Runners happen to be UTC today; stating it keeps that from being
-          # load-bearing luck.
-          TZ: UTC
+          # Berlin, like every other step. One clock for the whole job.
+          # Two reasons this must not be UTC. First, during CEST the 01:xx Berlin
+          # slot runs at 23:xx UTC the PREVIOUS day, so a UTC-dated card would
+          # plot only through yesterday and stay that way all day - the exact lag
+          # this rewrite exists to remove. Second, a UTC clock puts the run
+          # window on top of the UTC midnight rollover (there is a :53 slot in
+          # hour 23), so render and verify could straddle it and disagree. Berlin
+          # time puts 01:00-02:59 in the middle of its own day, nowhere near a
+          # boundary. GitHub accepts a `to` past the current UTC instant and
+          # returns the day with a zero count, so asking for Berlin-today is safe.
+          TZ: Europe/Berlin
           # STREAK_TOKEN (a PAT with `repo`) makes private contributions count.
           # Falls back to the job token, which sees public activity only.
           GITHUB_TOKEN: ${{ secrets.STREAK_TOKEN || secrets.GITHUB_TOKEN }}
@@ -121,12 +125,12 @@ jobs:
       - name: Verify the cards are actually current
         if: steps.gate.outputs.run == 'true'
         env:
-          TZ: UTC              # must match the render step - see the note above
+          TZ: Europe/Berlin    # must match the render step - see the note above
         run: |
           set -euo pipefail
           # The graph's aria-label ends on the last day plotted. If that is not
           # today, something rendered stale data and must not be committed.
-          today="$(date -u +%F)"
+          today="$(date +%F)"
           for f in profile/activity-graph.svg profile/activity-graph-light.svg; do
             grep -q "and $today" "$f" \
               || { echo "::error::$f does not plot through $today"; exit 1; }
@@ -138,6 +142,11 @@ jobs:
           done
           echo "all four cards verified current through $today"
 
+      # Do NOT give this step STREAK_TOKEN or any other PAT. It pushes to main,
+      # and this workflow also triggers `on: push` to main. That is not a loop
+      # only because pushes made with the default GITHUB_TOKEN do not trigger
+      # further workflow runs. A PAT is treated as a real user push and would
+      # start an endless push -> run -> commit -> push cycle.
       - name: Commit updated cards
         if: steps.gate.outputs.run == 'true'
         uses: stefanzweifel/git-auto-commit-action@v7
