@@ -1,10 +1,21 @@
 name: Generate Analytics Cards
 
-# Renders the GitHub Analytics cards to committed SVGs under profile/:
-#   - profile/streak.svg          (streak stats, via the first-party action + our token)
-#   - profile/activity-graph.svg  (activity graph, fetched and committed)
-# Serving them from our own repo means they always render and never hit the
-# shared public-server "Failed to retrieve contributions" error.
+# Renders every card in the README's GitHub Analytics section to committed SVGs
+# under profile/, all four from scripts/generate_cards.py, which reads GitHub's
+# own GraphQL contribution calendar.
+#
+# WHY THERE IS NO THIRD-PARTY SERVICE HERE - read before "simplifying" this.
+# The activity graph used to be downloaded, pre-rendered, from
+# github-readme-activity-graph.vercel.app. On 2026-08-24 that deployment began
+# answering 402 DEPLOYMENT_DISABLED - the maintainer's hobby Vercel project was
+# switched off. The old job caught the failed download and kept the previous
+# file, so it reported success every night while serving a graph frozen for 13
+# days. The streak card was generated locally and kept updating, which is why
+# only half the section went stale and nobody noticed.
+# Two rules came out of that, and both are load-bearing:
+#   1. Nothing here may depend on a service someone else has to keep paying for.
+#   2. Nothing here may fail quietly. If the data cannot be fetched the job goes
+#      red. A stale card that still looks fine is the failure we are avoiding.
 #
 # SCHEDULING NOTE — read before touching the cron lines.
 # GitHub cron is UTC-only and runs on a shared best-effort queue. A single daily
@@ -91,48 +102,40 @@ jobs:
           echo "run=true" >> "$GITHUB_OUTPUT"
           echo "::notice::$now_local, cards last updated ${last:-never} - running"
 
-      - name: Generate streak card (dark)
+      - name: Render the cards
         if: steps.gate.outputs.run == 'true'
-        uses: DenverCoder1/github-readme-streak-stats@v1.7.0
-        with:
-          # For PRIVATE contributions to count, create a repo secret named
-          # STREAK_TOKEN (a PAT with `repo` scope) and swap the line below to:
-          #   token: ${{ secrets.STREAK_TOKEN }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-          path: profile/streak.svg
-          options: >-
-            user=vinay4955&theme=tokyonight&hide_border=true&border_radius=10
+        env:
+          # Pin the render to UTC. The gate reasons in Berlin time (that is the
+          # schedule the cards are FOR), but the dates printed INTO the cards and
+          # the dates the verify step checks must come from one clock or the two
+          # disagree for the 1-2h each night when Berlin is already on the next
+          # day. Runners happen to be UTC today; stating it keeps that from being
+          # load-bearing luck.
+          TZ: UTC
+          # STREAK_TOKEN (a PAT with `repo`) makes private contributions count.
+          # Falls back to the job token, which sees public activity only.
+          GITHUB_TOKEN: ${{ secrets.STREAK_TOKEN || secrets.GITHUB_TOKEN }}
+        run: python3 scripts/generate_cards.py
 
-      - name: Generate streak card (light)
+      - name: Verify the cards are actually current
         if: steps.gate.outputs.run == 'true'
-        uses: DenverCoder1/github-readme-streak-stats@v1.7.0
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          path: profile/streak-light.svg
-          options: >-
-            user=vinay4955&theme=default&hide_border=true&border_radius=10
-
-      - name: Fetch activity graph
-        if: steps.gate.outputs.run == 'true'
+        env:
+          TZ: UTC              # must match the render step - see the note above
         run: |
-          mkdir -p profile
-          # Only overwrite a committed card if we got a real SVG back — a failed
-          # or rate-limited fetch keeps the last good graph instead of breaking it.
-          fetch() {
-            theme="$1"; out="$2"; tmp="$(mktemp)"
-            url="https://github-readme-activity-graph.vercel.app/graph?username=vinay4955&theme=${theme}&hide_border=true&area=true"
-            if curl -fsS --max-time 30 "$url" -o "$tmp" \
-              && head -c 200 "$tmp" | grep -q "<svg" \
-              && ! grep -qi "failed to retrieve" "$tmp"; then
-              mv "$tmp" "$out"
-              echo "updated $out"
-            else
-              echo "fetch failed for theme=$theme — keeping the previous $out"
-              rm -f "$tmp"
-            fi
-          }
-          fetch tokyo-night  profile/activity-graph.svg
-          fetch github-light profile/activity-graph-light.svg
+          set -euo pipefail
+          # The graph's aria-label ends on the last day plotted. If that is not
+          # today, something rendered stale data and must not be committed.
+          today="$(date -u +%F)"
+          for f in profile/activity-graph.svg profile/activity-graph-light.svg; do
+            grep -q "and $today" "$f" \
+              || { echo "::error::$f does not plot through $today"; exit 1; }
+          done
+          for f in profile/streak.svg profile/streak-light.svg \
+                   profile/activity-graph.svg profile/activity-graph-light.svg; do
+            [ -s "$f" ] || { echo "::error::$f is empty"; exit 1; }
+            grep -q "</svg>" "$f" || { echo "::error::$f is truncated"; exit 1; }
+          done
+          echo "all four cards verified current through $today"
 
       - name: Commit updated cards
         if: steps.gate.outputs.run == 'true'
