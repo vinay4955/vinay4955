@@ -175,14 +175,14 @@ THEMES = {
         "big": "#E4E2E2", "side": "#E4E2E2", "label": "#BF91F3",
         "side_label": "#E4E2E2", "date": "#8B949E", "divider": "#E4E2E2",
         "line": "#70A5FD", "point": "#70A5FD", "area_from": "#70A5FD",
-        "grid": "#2A2C3D", "axis": "#8B949E", "title": "#38BDAE",
+        "grid": "#2A2C3D", "axis": "#A9B1D6", "title": "#38BDAE", "peak": "#FFFFFF",
     },
     "light": {
         "bg": "#FFFEFE", "ring": "#FB8C00", "fire": "#FB8C00",
         "big": "#151515", "side": "#151515", "label": "#FB8C00",
         "side_label": "#151515", "date": "#464646", "divider": "#DDDDDD",
         "line": "#4C71F2", "point": "#4C71F2", "area_from": "#4C71F2",
-        "grid": "#E7E9EB", "axis": "#57606A", "title": "#1F2328",
+        "grid": "#E7E9EB", "axis": "#57606A", "title": "#1F2328", "peak": "#0B1020",
     },
 }
 
@@ -296,6 +296,8 @@ def render_graph(s: dict, t: dict, theme_name: str) -> str:
     top = peak if peak else 1
     step = 1 if top <= 5 else 2 if top <= 10 else 5 if top <= 25 else 10 if top <= 60 else 25
     top = ((top + step - 1) // step) * step
+    if peak == top:          # keep clear air above the tallest label
+        top += step
     font = "'Segoe UI', Ubuntu, sans-serif"
 
     def px(i: int) -> float:
@@ -313,13 +315,10 @@ def render_graph(s: dict, t: dict, theme_name: str) -> str:
     ticks = min(top // step, 5) or 1
     grid = []
     for k in range(ticks + 1):
-        val = round(top * k / ticks)
-        y = py(val)
+        y = py(round(top * k / ticks))
         grid.append(
             f'<line x1="{PAD_L}" y1="{y:.1f}" x2="{PAD_L + PLOT_W}" y2="{y:.1f}" '
-            f'stroke="{t["grid"]}" stroke-width="1"/>'
-            f'<text x="{PAD_L - 14}" y="{y + 4:.1f}" font-family="{font}" font-size="13" '
-            f'fill="{t["axis"]}" text-anchor="end">{val}</text>')
+            f'stroke="{t["grid"]}" stroke-width="1"/>')
 
     # Day-of-month on every point, with the month named where it changes - bare
     # numbers alone are ambiguous the moment the window straddles two months.
@@ -340,14 +339,32 @@ def render_graph(s: dict, t: dict, theme_name: str) -> str:
         f'<circle cx="{x:.1f}" cy="{y:.1f}" r="4" fill="{t["point"]}" '
         f'stroke="{t["bg"]}" stroke-width="2"/>' for x, y in pts)
 
-    # Label the peak only. A number on every point is chaos and goes unread.
-    peak_label = ""
-    if peak:
-        i = max(range(n), key=lambda k: series[k][1])
-        peak_label = (
-            f'<text x="{px(i):.1f}" y="{py(peak) - 14:.1f}" font-family="{font}" '
-            f'font-size="13" font-weight="700" fill="{t["axis"]}" '
-            f'text-anchor="middle">{peak}</text>')
+    # A value on every day. The point of this card is that a visitor reads the
+    # exact count without hovering, so the usual "label selectively" rule is
+    # deliberately traded away - at 31 points ~35px apart two digits fit with
+    # room to spare. Each label carries a surface-coloured halo (paint-order)
+    # so it stays readable where it crosses the line or the area fill, and the
+    # y-axis ticks are dropped because every value is now labelled directly.
+    peak_i = max(range(n), key=lambda k: series[k][1]) if peak else -1
+
+    def label_y(i: int, y: float) -> float:
+        """Above the point, except in a valley, where it would be pinched
+        between the two lines converging on it - there it drops below, but only
+        when that leaves clear air above the day ticks."""
+        c = series[i][1]
+        lo = i > 0 and series[i - 1][1] > c
+        hi = i < n - 1 and series[i + 1][1] > c
+        if lo and hi and y + 20 < base - 4:
+            return y + 21
+        return y - 13
+
+    labels = "".join(
+        f'<text x="{px(i):.1f}" y="{label_y(i, py(c)):.1f}" font-family="{font}" '
+        f'font-size="11" font-weight="{700 if i == peak_i else 600}" '
+        f'fill="{t["peak"] if i == peak_i else t["axis"]}" text-anchor="middle" '
+        f'paint-order="stroke" stroke="{t["bg"]}" stroke-width="3" '
+        f'stroke-linejoin="round">{c}</text>'
+        for i, (_, c) in enumerate(series))
 
     start, end = series[0][0], series[-1][0]
     total = sum(c for _, c in series)
@@ -373,7 +390,7 @@ def render_graph(s: dict, t: dict, theme_name: str) -> str:
   <path d="{line}" fill="none" stroke="{t['line']}" stroke-width="2"
         stroke-linecap="round" stroke-linejoin="round"/>
   {dots}
-  {peak_label}
+  {labels}
   {''.join(xlab)}
 </svg>
 """
