@@ -36,7 +36,7 @@ from datetime import date, datetime, timedelta
 USER = os.environ.get("CARD_USER", "vinay4955")
 OUT_DIR = os.environ.get("CARD_OUT", "profile")
 API = "https://api.github.com/graphql"
-GRAPH_DAYS = 365
+GRAPH_DAYS = 31   # rolling month, matching the card this replaced
 
 
 # --------------------------------------------------------------------------
@@ -174,14 +174,14 @@ THEMES = {
         "bg": "#1A1B27", "ring": "#BF91F3", "fire": "#BF91F3",
         "big": "#E4E2E2", "side": "#E4E2E2", "label": "#BF91F3",
         "side_label": "#E4E2E2", "date": "#8B949E", "divider": "#E4E2E2",
-        "line": "#70A5FD", "point": "#BF91F3", "area_from": "#70A5FD",
+        "line": "#70A5FD", "point": "#70A5FD", "area_from": "#70A5FD",
         "grid": "#2A2C3D", "axis": "#8B949E", "title": "#38BDAE",
     },
     "light": {
         "bg": "#FFFEFE", "ring": "#FB8C00", "fire": "#FB8C00",
         "big": "#151515", "side": "#151515", "label": "#FB8C00",
         "side_label": "#151515", "date": "#464646", "divider": "#DDDDDD",
-        "line": "#4C71F2", "point": "#1F2328", "area_from": "#4C71F2",
+        "line": "#4C71F2", "point": "#4C71F2", "area_from": "#4C71F2",
         "grid": "#E7E9EB", "axis": "#57606A", "title": "#1F2328",
     },
 }
@@ -282,46 +282,36 @@ PLOT_W = W - PAD_L - PAD_R
 PLOT_H = H - PAD_T - PAD_B
 
 
-def smooth_path(pts: list[tuple[float, float]]) -> str:
-    """Catmull-Rom through the points, emitted as cubic beziers.
-
-    A straight polyline over 365 daily values reads as noise; the spline keeps
-    the shape legible without inventing peaks that are not in the data.
-    """
-    if len(pts) < 2:
-        return f"M {pts[0][0]:.2f} {pts[0][1]:.2f}" if pts else ""
-    d = [f"M {pts[0][0]:.2f} {pts[0][1]:.2f}"]
-    for i in range(len(pts) - 1):
-        p0 = pts[i - 1] if i else pts[0]
-        p1, p2 = pts[i], pts[i + 1]
-        p3 = pts[i + 2] if i + 2 < len(pts) else p2
-        c1 = (p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6)
-        c2 = (p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6)
-        d.append(f"C {c1[0]:.2f} {c1[1]:.2f}, {c2[0]:.2f} {c2[1]:.2f}, {p2[0]:.2f} {p2[1]:.2f}")
-    return " ".join(d)
-
-
 def render_graph(s: dict, t: dict, theme_name: str) -> str:
+    """A rolling month of daily contributions.
+
+    Straight segments, not a spline. Over 31 sparse daily counts a smoothed curve
+    invents values between days that never existed - it reads as if something
+    happened on the quiet days. Each real observation carries its own marker
+    instead, so the line is a guide between points rather than a claim about them.
+    """
     series = s["series"]
-    peak = max(n for _, n in series) or 1
-    # Round the axis top to something human before scaling.
-    step = 1 if peak <= 5 else 2 if peak <= 10 else 5 if peak <= 25 else 10 if peak <= 60 else 25
-    top = ((peak + step - 1) // step) * step
+    n = len(series)
+    peak = max(c for _, c in series)
+    top = peak if peak else 1
+    step = 1 if top <= 5 else 2 if top <= 10 else 5 if top <= 25 else 10 if top <= 60 else 25
+    top = ((top + step - 1) // step) * step
     font = "'Segoe UI', Ubuntu, sans-serif"
 
     def px(i: int) -> float:
-        return PAD_L + (i / (len(series) - 1)) * PLOT_W
+        return PAD_L + (i / (n - 1)) * PLOT_W
 
-    def py(n: int) -> float:
-        return PAD_T + PLOT_H - (n / top) * PLOT_H
+    def py(c: int) -> float:
+        return PAD_T + PLOT_H - (c / top) * PLOT_H
 
-    pts = [(px(i), py(n)) for i, (_, n) in enumerate(series)]
-    line = smooth_path(pts)
-    area = f"{line} L {pts[-1][0]:.2f} {PAD_T + PLOT_H} L {pts[0][0]:.2f} {PAD_T + PLOT_H} Z"
+    pts = [(px(i), py(c)) for i, (_, c) in enumerate(series)]
+    line = "M " + " L ".join(f"{x:.1f} {y:.1f}" for x, y in pts)
+    base = PAD_T + PLOT_H
+    area = f"{line} L {pts[-1][0]:.1f} {base} L {pts[0][0]:.1f} {base} Z"
 
-    # Horizontal grid + y labels.
+    # Gridlines: hairline, solid, one step off the surface. Never dashed.
+    ticks = min(top // step, 5) or 1
     grid = []
-    ticks = top // step if top // step <= 6 else 5
     for k in range(ticks + 1):
         val = round(top * k / ticks)
         y = py(val)
@@ -331,50 +321,60 @@ def render_graph(s: dict, t: dict, theme_name: str) -> str:
             f'<text x="{PAD_L - 14}" y="{y + 4:.1f}" font-family="{font}" font-size="13" '
             f'fill="{t["axis"]}" text-anchor="end">{val}</text>')
 
-    # Month labels on the first day of each month present in the window.
-    months, seen = [], set()
+    # Day-of-month on every point, with the month named where it changes - bare
+    # numbers alone are ambiguous the moment the window straddles two months.
+    xlab = []
     for i, (d, _) in enumerate(series):
-        key = (d.year, d.month)
-        if key in seen:
-            continue
-        seen.add(key)
-        if i < 6 or i > len(series) - 6:
-            continue
-        months.append(
-            f'<text x="{px(i):.1f}" y="{PAD_T + PLOT_H + 28}" font-family="{font}" '
-            f'font-size="13" fill="{t["axis"]}" text-anchor="middle">'
-            f'{MONTHS[d.month - 1]} {str(d.year)[2:]}</text>')
+        xlab.append(
+            f'<text x="{px(i):.1f}" y="{base + 26}" font-family="{font}" font-size="12" '
+            f'fill="{t["axis"]}" text-anchor="middle">{d.day}</text>')
+        if i == 0 or d.day == 1:
+            xlab.append(
+                f'<text x="{px(i):.1f}" y="{base + 45}" font-family="{font}" font-size="12" '
+                f'font-weight="600" fill="{t["title"]}" text-anchor="middle">'
+                f'{MONTHS[d.month - 1]}</text>')
+
+    # One marker per real observation, each ringed in the surface colour so it
+    # stays legible where the line passes behind it.
+    dots = "".join(
+        f'<circle cx="{x:.1f}" cy="{y:.1f}" r="4" fill="{t["point"]}" '
+        f'stroke="{t["bg"]}" stroke-width="2"/>' for x, y in pts)
+
+    # Label the peak only. A number on every point is chaos and goes unread.
+    peak_label = ""
+    if peak:
+        i = max(range(n), key=lambda k: series[k][1])
+        peak_label = (
+            f'<text x="{px(i):.1f}" y="{py(peak) - 14:.1f}" font-family="{font}" '
+            f'font-size="13" font-weight="700" fill="{t["axis"]}" '
+            f'text-anchor="middle">{peak}</text>')
 
     start, end = series[0][0], series[-1][0]
-    total = sum(n for _, n in series)
+    total = sum(c for _, c in series)
 
     return f"""<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}"
      viewBox="0 0 {W} {H}" role="img"
      aria-label="Contribution activity graph: {total} contributions between {start} and {end}, peaking at {peak} in a day">
-  <style>
-    @keyframes draw {{ from {{ stroke-dasharray: 7000; stroke-dashoffset: 7000 }}
-                       to   {{ stroke-dasharray: 7000; stroke-dashoffset: 0 }} }}
-    .ln {{ animation: draw 2.2s ease-out }}
-  </style>
   <defs>
     <linearGradient id="fill-{theme_name}" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%"   stop-color="{t['area_from']}" stop-opacity="0.45"/>
+      <stop offset="0%"   stop-color="{t['area_from']}" stop-opacity="0.22"/>
       <stop offset="100%" stop-color="{t['area_from']}" stop-opacity="0.02"/>
     </linearGradient>
   </defs>
 
   <rect width="{W}" height="{H}" rx="10" fill="{t['bg']}"/>
-
   <text x="{PAD_L - 14}" y="40" font-family="{font}" font-weight="600" font-size="20"
         fill="{t['title']}">Contribution Graph</text>
   <text x="{W - PAD_R}" y="40" font-family="{font}" font-size="14"
-        fill="{t['axis']}" text-anchor="end">{total:,} contributions in the last year</text>
+        fill="{t['axis']}" text-anchor="end">{total:,} contributions in the last {n} days</text>
 
   {''.join(grid)}
   <path d="{area}" fill="url(#fill-{theme_name})"/>
-  <path class="ln" d="{line}" fill="none" stroke="{t['line']}" stroke-width="2.4"
+  <path d="{line}" fill="none" stroke="{t['line']}" stroke-width="2"
         stroke-linecap="round" stroke-linejoin="round"/>
-  {''.join(months)}
+  {dots}
+  {peak_label}
+  {''.join(xlab)}
 </svg>
 """
 
