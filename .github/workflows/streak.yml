@@ -120,7 +120,14 @@ jobs:
           # STREAK_TOKEN (a PAT with `repo`) makes private contributions count.
           # Falls back to the job token, which sees public activity only.
           GITHUB_TOKEN: ${{ secrets.STREAK_TOKEN || secrets.GITHUB_TOKEN }}
-        run: python3 scripts/generate_cards.py
+        run: |
+          set -euo pipefail
+          # Pin the display day once, here, and let verify reuse it. Slots run
+          # all day now - in CEST the 21:41 UTC slot is 23:41 Berlin, and this
+          # file has seen crons land over three hours late - so render and
+          # verify can otherwise straddle Berlin midnight and reject a good card.
+          echo "CARD_DAY=$(date +%F)" >> "$GITHUB_ENV"
+          CARD_DAY="$(date +%F)" python3 scripts/generate_cards.py
 
       - name: Verify the cards are actually current
         if: steps.gate.outputs.run == 'true'
@@ -130,7 +137,7 @@ jobs:
           set -euo pipefail
           # The graph's aria-label ends on the last day plotted. If that is not
           # today, something rendered stale data and must not be committed.
-          today="$(date +%F)"
+          today="${CARD_DAY:?CARD_DAY was not set by the render step}"
           for f in profile/activity-graph.svg profile/activity-graph-light.svg; do
             grep -q "and $today" "$f" \
               || { echo "::error::$f does not plot through $today"; exit 1; }

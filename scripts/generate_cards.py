@@ -68,6 +68,19 @@ def gql(query: str, variables: dict) -> dict:
     return payload["data"]
 
 
+def display_day() -> date:
+    """The date the cards are labelled with, in the job's local zone (Berlin).
+
+    The workflow pins this via CARD_DAY. Slots now run all day, and in CEST the
+    21:41 UTC slot is 23:41 Berlin - so the render and the verify step that
+    greps the card for "today" can otherwise land on opposite sides of Berlin
+    midnight and reject a card that is perfectly correct. Reading the clock once
+    also keeps this script self-consistent across its five GraphQL round trips.
+    """
+    pinned = os.environ.get("CARD_DAY")
+    return date.fromisoformat(pinned) if pinned else date.today()
+
+
 def account_created() -> date:
     data = gql("query($login:String!){ user(login:$login){ createdAt } }", {"login": USER})
     return datetime.strptime(data["user"]["createdAt"], "%Y-%m-%dT%H:%M:%SZ").date()
@@ -91,7 +104,7 @@ def contributions() -> dict[date, int]:
     }
     """
     days: dict[date, int] = {}
-    today = date.today()
+    today = display_day()
     cursor = account_created()
 
     while cursor <= today:
@@ -115,7 +128,7 @@ def contributions() -> dict[date, int]:
 
 
 def summarise(days: dict[date, int]) -> dict:
-    today = date.today()
+    today = display_day()
     active = sorted(d for d, n in days.items() if n > 0)
     if not active:
         # The calendar API returns every date in range, zeros included, so an
@@ -221,7 +234,7 @@ def fmt_day(d: date, with_year: bool) -> str:
 def fmt_range(start: date | None, end: date | None) -> str:
     if not start or not end:
         return ""
-    this_year = date.today().year
+    this_year = display_day().year
     if start == end:
         return fmt_day(start, start.year != this_year)
     show_year = start.year != this_year or end.year != this_year
