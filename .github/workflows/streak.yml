@@ -38,6 +38,12 @@ on:
   workflow_dispatch:
   push:
     branches: [ main ]
+    # Structural loop guard, independent of anyone reading the comment on the
+    # commit step. The card commits only ever touch profile/*.svg, so ignoring
+    # that path means a card commit cannot re-trigger this workflow even if a
+    # PAT one day reaches the pusher and defeats the GITHUB_TOKEN rule.
+    paths-ignore:
+      - 'profile/**'
 
 permissions:
   contents: write
@@ -54,6 +60,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
         with:
+          # Live head of main, not the SHA that created the event. Runs are
+          # queued rather than cancelled, so one that starts behind another
+          # would otherwise gate on pre-commit history, re-render what the first
+          # run already committed, and fail on a non-fast-forward push.
+          ref: main
           # The gate reads when profile/ last changed, so it needs real history.
           fetch-depth: 0
 
