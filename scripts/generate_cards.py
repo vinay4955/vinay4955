@@ -31,7 +31,7 @@ import os
 import sys
 import urllib.error
 import urllib.request
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 
 USER = os.environ.get("CARD_USER", "vinay4955")
 OUT_DIR = os.environ.get("CARD_OUT", "profile")
@@ -127,9 +127,33 @@ def summarise(days: dict[date, int]) -> dict:
         sys.exit("FATAL: calendar returned zero activity for the entire account "
                  "lifetime - refusing to overwrite the cards; check token scope")
 
-    # Current streak: consecutive active days ending today. A quiet *today* does
-    # not break it - the day is not over yet - so fall back to yesterday.
-    anchor = today if days.get(today, 0) > 0 else today - timedelta(days=1)
+    # Current streak: consecutive active days ending on the last day that can
+    # still be counted. A quiet day that is not over yet does not break it.
+    #
+    # WHICH day is "not over yet" is the whole subtlety, and getting it wrong
+    # zeroed a live 66-day streak on 2026-09-12. The calendar is queried with
+    # `Z` offsets, so GitHub buckets it in UTC, while `today` above is Berlin
+    # (TZ is set job-wide, because the graph and the verify step must agree on
+    # the display date). Those two dates disagree for the first two hours of
+    # every Berlin day - and the nightly render fires at 01:1x Berlin, which is
+    # 23:1x UTC, with the UTC day still 45 minutes from over.
+    #
+    # Anchoring on the Berlin date spends the grace day on a UTC day that has
+    # not started - guaranteed zero, it can never be anything else - and then
+    # reads the genuinely open UTC day as a finished zero. On 2026-09-12 that
+    # day's single contribution arrived at 23:30 UTC, sixteen minutes after the
+    # render, and the card went to 0 with 65 days of history behind it.
+    #
+    # So: the open day is today in UTC. Start from the later of the two dates
+    # and treat a trailing zero as provisional only while we are still on or
+    # after it. Past that, a zero is a real gap and the streak is over.
+    # `max` is defensive, not load-bearing: Berlin is a positive offset, so it
+    # rolls into a new date before UTC does and `today` is never behind
+    # `open_day`. It only earns its keep if TZ is ever unset or tzdata is stale.
+    open_day = datetime.now(timezone.utc).date()
+    anchor = max(today, open_day)
+    while anchor >= open_day and days.get(anchor, 0) == 0:
+        anchor -= timedelta(days=1)
     cur_end = anchor if days.get(anchor, 0) > 0 else None
     cur_start, cur_len = cur_end, 0
     if cur_end:
