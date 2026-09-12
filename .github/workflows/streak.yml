@@ -59,6 +59,15 @@ on:
     # PAT one day reaches the pusher and defeats the GITHUB_TOKEN rule.
     paths-ignore:
       - 'profile/**'
+      # The card commit now touches README.md as well, for the ?d= buster.
+      # KEEP THIS SET EQUAL TO the commit step's file_pattern. If a path is ever
+      # added there and not here, this structural guard silently degrades to
+      # "GITHUB_TOKEN pushes do not retrigger" on its own.
+      #
+      # Cost of ignoring README.md: a human push that breaks the card markup no
+      # longer gets an immediate red. The generator's readme_precheck catches it
+      # at the next slot instead, within a window at worst.
+      - 'README.md'
 
 permissions:
   contents: write
@@ -73,7 +82,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           # Live head of main, not the SHA that created the event. Runs are
           # queued rather than cancelled, so one that starts behind another
