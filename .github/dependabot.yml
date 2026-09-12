@@ -1,0 +1,8 @@
+# SHA-pinned actions do not update themselves, security fixes included. This is
+# the other half of pinning: the pins stay current without anyone remembering.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly
