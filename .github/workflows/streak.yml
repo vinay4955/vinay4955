@@ -157,8 +157,13 @@ jobs:
           # the current UTC instant and returns that day with a zero count, so
           # asking the calendar for Berlin-today is safe.
           TZ: Europe/Berlin
-          # STREAK_TOKEN (a PAT with `repo`) makes private contributions count.
-          # Falls back to the job token, which sees public activity only.
+          # Measured 2026-09-12: no STREAK_TOKEN secret exists, and none is
+          # needed. The job token already sees this account's private
+          # contributions (its total matched the owner-token total exactly at
+          # the same instant), because they are published on the profile. If
+          # that profile setting is ever turned off, the totals will drop and a
+          # PAT with `repo` in STREAK_TOKEN is the fix - the fallback stays here
+          # for that day.
           GITHUB_TOKEN: ${{ secrets.STREAK_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
