@@ -183,16 +183,37 @@ jobs:
           # The graph's aria-label ends on the last day plotted. If that is not
           # today, something rendered stale data and must not be committed.
           today="${CARD_DAY:?CARD_DAY was not set by the render step}"
-          for f in profile/activity-graph.svg profile/activity-graph-light.svg; do
-            grep -q "and $today" "$f" \
-              || { echo "::error::$f does not plot through $today"; exit 1; }
-          done
+
+          # All four cards, dark and light, must be well-formed AND stamped with
+          # today. The stamp is what lets the streak cards be checked at all -
+          # only the graphs carry a date in their aria-label, and a streak card
+          # with a broken streak renders "-" with nothing datable on it. Before
+          # this, "all four cards verified" checked the date of exactly two.
           for f in profile/streak.svg profile/streak-light.svg \
                    profile/activity-graph.svg profile/activity-graph-light.svg; do
             [ -s "$f" ] || { echo "::error::$f is empty"; exit 1; }
             grep -q "</svg>" "$f" || { echo "::error::$f is truncated"; exit 1; }
+            grep -q "<!-- rendered $today -->" "$f" \
+              || { echo "::error::$f was not rendered today ($today)"; exit 1; }
           done
-          echo "all four cards verified current through $today"
+
+          # The graphs additionally have to plot through today.
+          for f in profile/activity-graph.svg profile/activity-graph-light.svg; do
+            grep -q "and $today" "$f" \
+              || { echo "::error::$f does not plot through $today"; exit 1; }
+          done
+
+          # And the README has to point at today's cards. Camo caches by URL, so
+          # a correct card behind a stale URL is still a stale profile - the
+          # cards were right on the remote and wrong on the profile for exactly
+          # this reason before the ?d= buster existed.
+          for c in streak streak-light activity-graph activity-graph-light; do
+            grep -q "profile/$c.svg?d=$today" README.md \
+              || { echo "::error::README does not point at today's $c.svg"; exit 1; }
+          done
+
+          echo "all four cards, both themes, verified current through $today"
+          echo "README card URLs verified at ?d=$today"
 
       # Do NOT give this step STREAK_TOKEN or any other PAT. It pushes to main,
       # and this workflow also triggers `on: push` to main. That is not a loop
