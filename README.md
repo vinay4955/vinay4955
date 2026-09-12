@@ -88,13 +88,13 @@
 
 <!-- Both cards are theme-aware to match the header card — see .github/workflows/streak.yml -->
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/vinay4955/vinay4955/main/profile/streak.svg">
-  <img src="https://raw.githubusercontent.com/vinay4955/vinay4955/main/profile/streak-light.svg" alt="GitHub streak: current streak, longest streak and total contributions" />
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/vinay4955/vinay4955/main/profile/streak.svg?d=2026-09-12">
+  <img src="https://raw.githubusercontent.com/vinay4955/vinay4955/main/profile/streak-light.svg?d=2026-09-12" alt="GitHub streak: current streak, longest streak and total contributions" />
 </picture>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/vinay4955/vinay4955/main/profile/activity-graph.svg">
-  <img src="https://raw.githubusercontent.com/vinay4955/vinay4955/main/profile/activity-graph-light.svg" width="95%" alt="Contribution activity graph for the past year" />
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/vinay4955/vinay4955/main/profile/activity-graph.svg?d=2026-09-12">
+  <img src="https://raw.githubusercontent.com/vinay4955/vinay4955/main/profile/activity-graph-light.svg?d=2026-09-12" width="95%" alt="Contribution activity graph: contributions per day over the last 31 days" />
 </picture>
 
 </div>

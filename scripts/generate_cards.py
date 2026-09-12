@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sys
 import urllib.error
 import urllib.request
@@ -35,8 +36,14 @@ from datetime import date, datetime, timedelta, timezone
 
 USER = os.environ.get("CARD_USER", "vinay4955")
 OUT_DIR = os.environ.get("CARD_OUT", "profile")
+README = os.environ.get("CARD_README", "README.md")
 API = "https://api.github.com/graphql"
 GRAPH_DAYS = 31   # rolling month, matching the card this replaced
+
+# The four card URLs in the README, with an optional cache-buster to replace.
+CARD_URL = re.compile(
+    r"(raw\.githubusercontent\.com/[^\"\s]+?/profile/[a-z0-9_-]+\.svg)(\?[^\"\s]*)?"
+)
 
 
 # --------------------------------------------------------------------------
@@ -437,7 +444,79 @@ def render_graph(s: dict, t: dict, theme_name: str) -> str:
 # main
 # --------------------------------------------------------------------------
 
+def stamp(svg: str, day: date) -> str:
+    """Record the day an SVG was rendered, as a comment inside the root element.
+
+    Two jobs. It lets verify check that ALL FOUR cards are current, not just the
+    two graphs - those happen to carry a date range in their aria-label, the
+    streak cards carry nothing datable (a broken streak renders as "-"). And it
+    guarantees the bytes change once per Berlin day, so a commit lands every day
+    even on a completely quiet one, which keeps the age gate from drifting and
+    makes ">24h old" an unambiguous alarm.
+
+    A comment is inert: it cannot regress the blank-card render contract the way
+    anything animation- or opacity-gated would.
+    """
+    # Locate the ROOT element, not merely the first ">" - an XML declaration
+    # would otherwise put the comment outside the root. `assert` is no good here
+    # either: -O strips it, and this must not degrade into appending a comment
+    # to something that is not an SVG.
+    start = svg.find("<svg")
+    end = svg.find(">", start) if start != -1 else -1
+    if start == -1 or end == -1:
+        sys.exit("FATAL: no opening <svg> tag to stamp - refusing to write")
+    return f"{svg[:end + 1]}\n  <!-- rendered {day.isoformat()} -->{svg[end + 1:]}"
+
+
+def readme_precheck() -> None:
+    """Fail on broken README markup BEFORE spending the work.
+
+    refresh_readme runs last, so without this a moved card URL is only caught
+    after five GraphQL round trips and four written SVGs - wasted calls in CI,
+    and locally a hard exit on top of a half-updated working tree.
+    """
+    count_cards(read_readme())
+
+
+def read_readme() -> str:
+    try:
+        with open(README) as fh:
+            return fh.read()
+    except FileNotFoundError:
+        sys.exit(f"FATAL: {README} not found - cannot refresh the card URLs")
+
+
+def count_cards(text: str) -> int:
+    n = len(CARD_URL.findall(text))
+    if n != 4:
+        sys.exit(f"FATAL: expected 4 card URLs in {README}, found {n} - the "
+                 "README markup moved and the cards would go stale silently")
+    return n
+
+
+def refresh_readme(day: date) -> bool:
+    """Point the README's four card URLs at today. True if the file changed.
+
+    GitHub serves README images through Camo, which caches by URL. With no query
+    string these four URLs never change, so Camo can keep serving yesterday's
+    card long after the file behind it moved - correct on the remote, stale on
+    the profile, which is the exact class of failure this pipeline exists to
+    prevent. The header card handles this with a hand-bumped `?v=`; these are
+    regenerated daily, so they carry the render date and bust themselves.
+    """
+    before = read_readme()
+    count_cards(before)
+    after = CARD_URL.sub(rf"\1?d={day.isoformat()}", before)
+    if after == before:
+        return False
+    with open(README, "w") as fh:
+        fh.write(after)
+    return True
+
+
 def main() -> None:
+    day = display_day()
+    readme_precheck()
     summary = summarise(contributions())
     os.makedirs(OUT_DIR, exist_ok=True)
 
@@ -449,11 +528,14 @@ def main() -> None:
     }
     for name, svg in outputs.items():
         with open(os.path.join(OUT_DIR, name), "w") as fh:
-            fh.write(svg)
+            fh.write(stamp(svg, day))
+
+    bumped = refresh_readme(day)
 
     print(f"total={summary['total']} current={summary['current']} "
           f"longest={summary['longest']} first={summary['first']}")
-    print("wrote: " + ", ".join(outputs))
+    print("wrote: " + ", ".join(outputs) + f" (stamped {day})")
+    print(f"README card URLs: {'bumped to ?d=' + day.isoformat() if bumped else 'already current'}")
 
 
 if __name__ == "__main__":
