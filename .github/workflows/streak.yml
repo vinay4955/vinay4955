@@ -34,7 +34,22 @@ name: Generate Analytics Cards
 # DST needs no maintenance because nothing here keys off a wall-clock hour.
 on:
   schedule:
-    - cron: "7,41 0,3,6,9,12,15,18,21 * * *"
+    # Daytime refresh, every three hours, so a commit shows on the cards within
+    # one window instead of the next morning.
+    - cron: "7,41 3,6,9,12,15,18,21 * * *"
+    # The guaranteed nightly render, inside the 01:00-02:59 Berlin window.
+    # Berlin is UTC+2 in CEST and UTC+1 in CET, so UTC 00 is Berlin 02 in summer
+    # and Berlin 01 in winter - in the window either way - and UTC 01 adds
+    # Berlin 02 in winter. Five attempts an hour because GitHub cron is
+    # best-effort and this file has watched it drop slots outright; the gate
+    # lets exactly one through, see the nightly branch there.
+    #
+    # Do NOT add a UTC 23 slot to "cover CEST better". It lands at Berlin 00:0x
+    # in CET - BEFORE the window - where the nightly branch does not apply, so
+    # the age gate would do the winter render at midnight instead, one minute
+    # under the >24h alarm and outside the window this exists to hit. Keeping
+    # the schedule clear of Berlin 00 is what lets the nightly branch always win.
+    - cron: "7,19,31,43,55 0,1 * * *"
   workflow_dispatch:
   push:
     branches: [ main ]
@@ -73,13 +88,13 @@ jobs:
         env:
           TZ: Europe/Berlin
           EVENT: ${{ github.event_name }}
-          # Must land between the two REAL gaps in the schedule, which are
-          # uneven: 34m from :07 to :41, then 146m from :41 to the next :07.
-          # Under 34 and both slots in a window duplicate work. At 147+ a commit
-          # landing on :41 makes the following :07 hold, the schedule phase-locks
-          # onto :41, and the second attempt per window - the entire reason there
-          # are two - stops firing. So it is the 146m gap that binds here, not
-          # the three-hour window.
+          # The schedule's real gaps are {12, 34, 72, 146} minutes - 12 inside
+          # the night block, 34 between a daytime :07 and :41, 146 from a :41 to
+          # the next window. 146 is what binds: at 147+ a commit landing on :41
+          # makes the following :07 hold, the schedule phase-locks onto :41, and
+          # the second daytime attempt - the entire reason there are two - stops
+          # firing. Above 12 collapses the night block to a single working run.
+          # Recompute this set if the cron lines change; do not assume 3 hours.
           MAX_AGE_MINUTES: "120"
         run: |
           set -euo pipefail
@@ -104,6 +119,29 @@ jobs:
           # again. The job is ten seconds of API calls, so re-running is far
           # cheaper than being wrong for a day.
           now="$(date '+%Y-%m-%d %H:%M %Z')"
+          hour="$(date +%H)"
+          today="$(date +%F)"
+          last_day="$(git log -1 --format=%cd --date=format-local:%F -- profile/ 2>/dev/null || true)"
+
+          # The nightly guarantee. Inside the Berlin night window, run if the
+          # cards have not already been rendered today - regardless of age. The
+          # age gate alone cannot promise this: a push at 23:50 leaves the cards
+          # ten minutes old, the night slot holds, and the day has no night
+          # render. Only the first in-window slot does work, because the render
+          # stamps today's date into all four cards and commits, which moves
+          # last_day forward and makes the remaining slots fall through.
+          #
+          # This branch must `exit 0` before the age check, and the schedule must
+          # keep every slot out of Berlin 00. Otherwise the night render happens
+          # through the age path at an age of almost exactly 1440m, which sits on
+          # top of the >24h alarm below and annunciates on a healthy night.
+          if { [ "$hour" = "01" ] || [ "$hour" = "02" ]; } \
+             && [ "$last_day" != "$today" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::nightly window ($now) and no render yet today - running"
+            exit 0
+          fi
+
           # `git log` prints nothing (exit 0) when profile/ has no history yet,
           # and `set -u`/`-e` would then blow up on the arithmetic below rather
           # than on anything to do with the cards. Normalise to 0 instead.
@@ -122,10 +160,12 @@ jobs:
           # aria-label, so a commit is guaranteed at least once a day. Past 24h
           # the schedule itself is not landing - the "a lost night becomes a lost
           # week" case the removed rescue cron used to annunciate. That must not
-          # arrive looking like an ordinary notice.
-          if [ "$age" -ge 1440 ]; then
+          # arrive looking like an ordinary notice - which is also why the
+          # threshold is 26h and not 24h: a nightly render that merely ran late
+          # is not a failure, and an alarm that fires on those is ignored.
+          if [ "$age" -ge 1560 ]; then
             echo "run=true" >> "$GITHUB_OUTPUT"
-            echo "::warning::cards are ${age}m old (>24h) - the schedule is not landing"
+            echo "::warning::cards are ${age}m old (>26h) - the schedule is not landing"
           elif [ "$age" -ge "$MAX_AGE_MINUTES" ]; then
             echo "run=true" >> "$GITHUB_OUTPUT"
             echo "::notice::cards are ${age}m old (limit ${MAX_AGE_MINUTES}m) - running at $now"
@@ -222,7 +262,10 @@ jobs:
       # start an endless push -> run -> commit -> push cycle.
       - name: Commit updated cards
         if: steps.gate.outputs.run == 'true'
-        uses: stefanzweifel/git-auto-commit-action@v7
+        uses: stefanzweifel/git-auto-commit-action@4a55954c782fc1ea30b9056cd3e7a2b40ca8887d  # v7.2.0
         with:
           commit_message: "update analytics cards"
-          file_pattern: profile/*.svg
+          # README.md too: it carries the ?d= cache-buster that makes GitHub
+          # re-fetch the cards. Committing the cards without it means Camo keeps
+          # serving yesterday's.
+          file_pattern: profile/*.svg README.md
