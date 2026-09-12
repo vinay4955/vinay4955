@@ -19,25 +19,22 @@ name: Generate Analytics Cards
 #      red. A stale card that still looks fine is the failure we are avoiding.
 #
 # SCHEDULING - read before touching the cron lines.
-# GitHub cron is UTC-only and best-effort: a single daily cron is not reliable
-# (through Aug 2026 this workflow's one cron ran 40min-3h14m late every time,
-# then was dropped outright). Round minutes (:00 :15 :30 :45) are the most
-# contended. So we fire several odd-minute slots and let the gate decide which
-# one works. The target window is 01:00-02:59 Europe/Berlin, year round:
-#   UTC 23 -> Berlin 01 (CEST) / 00 (CET)
-#   UTC 00 -> Berlin 02 (CEST) / 01 (CET)
-#   UTC 01 -> Berlin 03 (CEST) / 02 (CET)
-# The gate accepts only Berlin hours 01 and 02, so each season gets two live
-# hours and DST needs no maintenance.
+# These cards must track the CURRENT day, so this runs through the day, not
+# once at night. The old design rendered in a 01:00-02:59 Berlin window and
+# then refused to run again until the next night ("already updated today").
+# That made every card a snapshot of the small hours: contributions made
+# during the day did not appear until roughly 24 hours later, and a streak
+# that was wrong at 01:14 stayed wrong until 01:14 the next morning. On
+# 2026-09-12 that is exactly what happened - see the note in the gate below.
+#
+# GitHub cron is UTC-only and best-effort; round minutes (:00 :15 :30 :45) are
+# the most contended and get dropped first. So: a window every three hours,
+# two odd-minute attempts in each, and a staleness gate that lets the first
+# one that actually lands do the work. Worst-case age of a card is one window.
+# DST needs no maintenance because nothing here keys off a wall-clock hour.
 on:
   schedule:
-    - cron: "3,11,23,37,53 23 * * *"
-    - cron: "3,11,23,37,53 0 * * *"
-    - cron: "3,11,23,37,53 1 * * *"
-    # Rescue sweep. These only act if the cards are already MORE than a day
-    # stale, i.e. every slot in the night window was dropped. Normal days never
-    # reach them. Without this a lost night silently becomes a lost week.
-    - cron: "17 9,15,21 * * *"
+    - cron: "7,41 0,3,6,9,12,15,18,21 * * *"
   workflow_dispatch:
   push:
     branches: [ main ]
@@ -65,6 +62,14 @@ jobs:
         env:
           TZ: Europe/Berlin
           EVENT: ${{ github.event_name }}
+          # Must land between the two REAL gaps in the schedule, which are
+          # uneven: 34m from :07 to :41, then 146m from :41 to the next :07.
+          # Under 34 and both slots in a window duplicate work. At 147+ a commit
+          # landing on :41 makes the following :07 hold, the schedule phase-locks
+          # onto :41, and the second attempt per window - the entire reason there
+          # are two - stops firing. So it is the 146m gap that binds here, not
+          # the three-hour window.
+          MAX_AGE_MINUTES: "120"
         run: |
           set -euo pipefail
 
@@ -74,48 +79,72 @@ jobs:
             exit 0
           fi
 
+          # Gate on the AGE of the cards, not on the calendar date they carry.
+          # The date test this replaces ("skip if profile/ already changed
+          # today") meant the first run after midnight claimed the day and every
+          # later slot no-opped, so the cards could never improve on whatever
+          # the 01:1x render happened to see. On 2026-09-12 the 01:14 run
+          # recorded a broken streak, and the 00:50, 04:24 and 05:37 runs all
+          # logged "already updated today - skipping" while the profile served
+          # a zero for the rest of the day.
+          #
+          # An age test has no such absorbing state: if nothing changed, the
+          # commit is not made, the age keeps growing and the next slot tries
+          # again. The job is ten seconds of API calls, so re-running is far
+          # cheaper than being wrong for a day.
           now="$(date '+%Y-%m-%d %H:%M %Z')"
-          today="$(date +%F)"
-          yesterday="$(date -d 'yesterday' +%F)"
-          hour="$(date +%H)"
-          last="$(git log -1 --format=%cd --date=format-local:%F -- profile/ || true)"
-
-          if [ "$last" = "$today" ]; then
-            echo "run=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::already updated today ($today) - skipping"
+          # `git log` prints nothing (exit 0) when profile/ has no history yet,
+          # and `set -u`/`-e` would then blow up on the arithmetic below rather
+          # than on anything to do with the cards. Normalise to 0 instead.
+          last_epoch="$(git log -1 --format=%ct -- profile/ 2>/dev/null || true)"
+          case "$last_epoch" in
+            ''|*[!0-9]*) last_epoch=0 ;;
+          esac
+          if [ "$last_epoch" -eq 0 ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            echo "::warning::no usable profile/ history - running at $now"
             exit 0
           fi
 
-          # Rescue path: more than a day behind means the whole night window was
-          # dropped. Refresh now rather than wait and let the gap grow.
-          if [ -n "$last" ] && [ "$last" \< "$yesterday" ]; then
+          age=$(( ( $(date +%s) - last_epoch ) / 60 ))
+          # A Berlin date rollover always changes the series and the graph's
+          # aria-label, so a commit is guaranteed at least once a day. Past 24h
+          # the schedule itself is not landing - the "a lost night becomes a lost
+          # week" case the removed rescue cron used to annunciate. That must not
+          # arrive looking like an ordinary notice.
+          if [ "$age" -ge 1440 ]; then
             echo "run=true" >> "$GITHUB_OUTPUT"
-            echo "::warning::cards last updated $last - overdue, running at $now"
-            exit 0
-          fi
-
-          # Normal path: only inside the 01:00-02:59 Berlin window.
-          if [ "$hour" = "01" ] || [ "$hour" = "02" ]; then
+            echo "::warning::cards are ${age}m old (>24h) - the schedule is not landing"
+          elif [ "$age" -ge "$MAX_AGE_MINUTES" ]; then
             echo "run=true" >> "$GITHUB_OUTPUT"
-            echo "::notice::$now is in the 01:00-03:00 window - running"
+            echo "::notice::cards are ${age}m old (limit ${MAX_AGE_MINUTES}m) - running at $now"
           else
             echo "run=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::$now is outside the 01:00-03:00 window - holding"
+            echo "::notice::cards are ${age}m old (limit ${MAX_AGE_MINUTES}m) - fresh, holding"
           fi
 
       - name: Render the cards
         if: steps.gate.outputs.run == 'true'
         env:
-          # Berlin, like every other step. One clock for the whole job.
-          # Two reasons this must not be UTC. First, during CEST the 01:xx Berlin
-          # slot runs at 23:xx UTC the PREVIOUS day, so a UTC-dated card would
-          # plot only through yesterday and stay that way all day - the exact lag
-          # this rewrite exists to remove. Second, a UTC clock puts the run
-          # window on top of the UTC midnight rollover (there is a :53 slot in
-          # hour 23), so render and verify could straddle it and disagree. Berlin
-          # time puts 01:00-02:59 in the middle of its own day, nowhere near a
-          # boundary. GitHub accepts a `to` past the current UTC instant and
-          # returns the day with a zero count, so asking for Berlin-today is safe.
+          # Berlin is the DISPLAY clock and only the display clock: the date the
+          # cards are labelled with, the last day the graph plots, and the date
+          # the verify step below greps for. It must not become UTC - during
+          # CEST a 23:xx UTC slot is already the next Berlin day, so a UTC-dated
+          # card would plot only through yesterday and sit there all day, which
+          # is the lag this pipeline exists to remove.
+          #
+          # It is NOT the clock the streak reasons with, and the two must stay
+          # apart. GitHub buckets the contribution calendar in UTC, so
+          # generate_cards.py anchors the current streak on the UTC day on
+          # purpose. Collapsing them back into one clock is what rendered a live
+          # 66-day streak as 0 on 2026-09-12 - see the long comment on the
+          # anchor in that file before touching either.
+          #
+          # Midnight safety no longer comes from running in a quiet window;
+          # there is no window any more. It comes from CARD_DAY, pinned once in
+          # the run block below and reused by verify. GitHub accepts a `to` past
+          # the current UTC instant and returns that day with a zero count, so
+          # asking the calendar for Berlin-today is safe.
           TZ: Europe/Berlin
           # STREAK_TOKEN (a PAT with `repo`) makes private contributions count.
           # Falls back to the job token, which sees public activity only.
