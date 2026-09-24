@@ -33,7 +33,7 @@ jobs:
             user=vinay4955&theme=tokyonight&hide_border=true&border_radius=10
 
       - name: Commit updated streak SVG
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: "chore: update streak stats"
           file_pattern: profile/streak.svg
