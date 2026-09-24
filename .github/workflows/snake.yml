@@ -27,7 +27,7 @@ jobs:
             dist/github-snake.gif?color_snake=orange&color_dots=#bfd0d8,#70a5fd,#4c8bf5,#3563e9,#1a3fc4
 
       - name: Publish to output branch
-        uses: crazy-max/ghaction-github-pages@v4
+        uses: crazy-max/ghaction-github-pages@v5
         with:
           target_branch: output
           build_dir: dist
