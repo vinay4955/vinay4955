@@ -22,7 +22,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Generate streak card
-        uses: DenverCoder1/github-readme-streak-stats@v1.7.0
+        uses: DenverCoder1/github-readme-streak-stats@v1.8.0
         with:
           # For PRIVATE contributions to count, create a repo secret named
           # STREAK_TOKEN (a PAT with `repo` scope) and swap the line below to:
