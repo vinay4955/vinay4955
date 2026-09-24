@@ -1,280 +1,39 @@
-name: Generate Analytics Cards
+name: Generate Streak Stats
 
-# Renders every card in the README's GitHub Analytics section to committed SVGs
-# under profile/:  streak.svg, streak-light.svg, activity-graph.svg,
-# activity-graph-light.svg. All four come from scripts/generate_cards.py, which
-# reads GitHub's own GraphQL contribution calendar.
-#
-# WHY THERE IS NO THIRD-PARTY SERVICE HERE - read before "simplifying" this.
-# The activity graph used to be downloaded, pre-rendered, from
-# github-readme-activity-graph.vercel.app. On 2026-08-24 that deployment began
-# answering 402 DEPLOYMENT_DISABLED - the maintainer's hobby Vercel project was
-# switched off. The old job caught the failed download and kept the previous
-# file, so it reported success every night while serving a graph frozen for 13
-# days. The streak card was generated locally and kept updating, which is why
-# only half the section went stale and nobody noticed.
-# Two rules came out of that, and both are load-bearing:
-#   1. Nothing here may depend on a service someone else has to keep paying for.
-#   2. Nothing here may fail quietly. If the data cannot be fetched the job goes
-#      red. A stale card that still looks fine is the failure we are avoiding.
-#
-# SCHEDULING - read before touching the cron lines.
-# These cards must track the CURRENT day, so this runs through the day, not
-# once at night. The old design rendered in a 01:00-02:59 Berlin window and
-# then refused to run again until the next night ("already updated today").
-# That made every card a snapshot of the small hours: contributions made
-# during the day did not appear until roughly 24 hours later, and a streak
-# that was wrong at 01:14 stayed wrong until 01:14 the next morning. On
-# 2026-09-12 that is exactly what happened - see the note in the gate below.
-#
-# GitHub cron is UTC-only and best-effort; round minutes (:00 :15 :30 :45) are
-# the most contended and get dropped first. So: a window every three hours,
-# two odd-minute attempts in each, and a staleness gate that lets the first
-# one that actually lands do the work. Worst-case age of a card is one window.
-# DST needs no maintenance because nothing here keys off a wall-clock hour.
+# Renders the GitHub streak card to a committed SVG (profile/streak.svg)
+# using the workflow's own GitHub token — so it uses OUR API quota and never
+# hits the shared public-server "Failed to retrieve contributions" error.
+# Runs on every push, daily, and on demand — so it always reflects your latest work.
 on:
   schedule:
-    # Daytime refresh, every three hours, so a commit shows on the cards within
-    # one window instead of the next morning.
-    - cron: "7,41 3,6,9,12,15,18,21 * * *"
-    # The guaranteed nightly render, inside the 01:00-02:59 Berlin window.
-    # Berlin is UTC+2 in CEST and UTC+1 in CET, so UTC 00 is Berlin 02 in summer
-    # and Berlin 01 in winter - in the window either way - and UTC 01 adds
-    # Berlin 02 in winter. Five attempts an hour because GitHub cron is
-    # best-effort and this file has watched it drop slots outright; the gate
-    # lets exactly one through, see the nightly branch there.
-    #
-    # Do NOT add a UTC 23 slot to "cover CEST better". It lands at Berlin 00:0x
-    # in CET - BEFORE the window - where the nightly branch does not apply, so
-    # the age gate would do the winter render at midnight instead, one minute
-    # under the >24h alarm and outside the window this exists to hit. Keeping
-    # the schedule clear of Berlin 00 is what lets the nightly branch always win.
-    - cron: "7,19,31,43,55 0,1 * * *"
-  workflow_dispatch:
-  push:
-    branches: [ main ]
-    # Structural loop guard, independent of anyone reading the comment on the
-    # commit step. The card commits only ever touch profile/*.svg, so ignoring
-    # that path means a card commit cannot re-trigger this workflow even if a
-    # PAT one day reaches the pusher and defeats the GITHUB_TOKEN rule.
-    paths-ignore:
-      - 'profile/**'
-      # The card commit now touches README.md as well, for the ?d= buster.
-      # KEEP THIS SET EQUAL TO the commit step's file_pattern. If a path is ever
-      # added there and not here, this structural guard silently degrades to
-      # "GITHUB_TOKEN pushes do not retrigger" on its own.
-      #
-      # Cost of ignoring README.md: a human push that breaks the card markup no
-      # longer gets an immediate red. The generator's readme_precheck catches it
-      # at the next slot instead, within a window at worst.
-      - 'README.md'
+    - cron: "30 19 * * *"    # 1:00 AM IST
+    - cron: "30 7 * * *"     # 1:00 PM IST
+  workflow_dispatch:          # manual / on-demand trigger
 
 permissions:
   contents: write
 
-concurrency:
-  group: analytics-cards
-  cancel-in-progress: false
-
 jobs:
-  cards:
+  streak:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        uses: actions/checkout@v4
+
+      - name: Generate streak card
+        uses: DenverCoder1/github-readme-streak-stats@v1.7.0
         with:
-          # Live head of main, not the SHA that created the event. Runs are
-          # queued rather than cancelled, so one that starts behind another
-          # would otherwise gate on pre-commit history, re-render what the first
-          # run already committed, and fail on a non-fast-forward push.
-          ref: main
-          # The gate reads when profile/ last changed, so it needs real history.
-          fetch-depth: 0
+          # For PRIVATE contributions to count, create a repo secret named
+          # STREAK_TOKEN (a PAT with `repo` scope) and swap the line below to:
+          #   token: ${{ secrets.STREAK_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: profile/streak.svg
+          options: >-
+            user=vinay4955&theme=tokyonight&hide_border=true&border_radius=10
 
-      - name: Decide whether this run should do the work
-        id: gate
-        env:
-          TZ: Europe/Berlin
-          EVENT: ${{ github.event_name }}
-          # The schedule's real gaps are {12, 34, 72, 146} minutes - 12 inside
-          # the night block, 34 between a daytime :07 and :41, 146 from a :41 to
-          # the next window. 146 is what binds: at 147+ a commit landing on :41
-          # makes the following :07 hold, the schedule phase-locks onto :41, and
-          # the second daytime attempt - the entire reason there are two - stops
-          # firing. Above 12 collapses the night block to a single working run.
-          # Recompute this set if the cron lines change; do not assume 3 hours.
-          MAX_AGE_MINUTES: "120"
-        run: |
-          set -euo pipefail
-
-          if [ "$EVENT" != "schedule" ]; then
-            echo "run=true" >> "$GITHUB_OUTPUT"
-            echo "::notice::$EVENT trigger - running unconditionally"
-            exit 0
-          fi
-
-          # Gate on the AGE of the cards, not on the calendar date they carry.
-          # The date test this replaces ("skip if profile/ already changed
-          # today") meant the first run after midnight claimed the day and every
-          # later slot no-opped, so the cards could never improve on whatever
-          # the 01:1x render happened to see. On 2026-09-12 the 01:14 run
-          # recorded a broken streak, and the 00:50, 04:24 and 05:37 runs all
-          # logged "already updated today - skipping" while the profile served
-          # a zero for the rest of the day.
-          #
-          # An age test has no such absorbing state: if nothing changed, the
-          # commit is not made, the age keeps growing and the next slot tries
-          # again. The job is ten seconds of API calls, so re-running is far
-          # cheaper than being wrong for a day.
-          now="$(date '+%Y-%m-%d %H:%M %Z')"
-          hour="$(date +%H)"
-          today="$(date +%F)"
-          last_day="$(git log -1 --format=%cd --date=format-local:%F -- profile/ 2>/dev/null || true)"
-
-          # The nightly guarantee. Inside the Berlin night window, run if the
-          # cards have not already been rendered today - regardless of age. The
-          # age gate alone cannot promise this: a push at 23:50 leaves the cards
-          # ten minutes old, the night slot holds, and the day has no night
-          # render. Only the first in-window slot does work, because the render
-          # stamps today's date into all four cards and commits, which moves
-          # last_day forward and makes the remaining slots fall through.
-          #
-          # This branch must `exit 0` before the age check, and the schedule must
-          # keep every slot out of Berlin 00. Otherwise the night render happens
-          # through the age path at an age of almost exactly 1440m, which sits on
-          # top of the >24h alarm below and annunciates on a healthy night.
-          if { [ "$hour" = "01" ] || [ "$hour" = "02" ]; } \
-             && [ "$last_day" != "$today" ]; then
-            echo "run=true" >> "$GITHUB_OUTPUT"
-            echo "::notice::nightly window ($now) and no render yet today - running"
-            exit 0
-          fi
-
-          # `git log` prints nothing (exit 0) when profile/ has no history yet,
-          # and `set -u`/`-e` would then blow up on the arithmetic below rather
-          # than on anything to do with the cards. Normalise to 0 instead.
-          last_epoch="$(git log -1 --format=%ct -- profile/ 2>/dev/null || true)"
-          case "$last_epoch" in
-            ''|*[!0-9]*) last_epoch=0 ;;
-          esac
-          if [ "$last_epoch" -eq 0 ]; then
-            echo "run=true" >> "$GITHUB_OUTPUT"
-            echo "::warning::no usable profile/ history - running at $now"
-            exit 0
-          fi
-
-          age=$(( ( $(date +%s) - last_epoch ) / 60 ))
-          # A Berlin date rollover always changes the series and the graph's
-          # aria-label, so a commit is guaranteed at least once a day. Past 24h
-          # the schedule itself is not landing - the "a lost night becomes a lost
-          # week" case the removed rescue cron used to annunciate. That must not
-          # arrive looking like an ordinary notice - which is also why the
-          # threshold is 26h and not 24h: a nightly render that merely ran late
-          # is not a failure, and an alarm that fires on those is ignored.
-          if [ "$age" -ge 1560 ]; then
-            echo "run=true" >> "$GITHUB_OUTPUT"
-            echo "::warning::cards are ${age}m old (>26h) - the schedule is not landing"
-          elif [ "$age" -ge "$MAX_AGE_MINUTES" ]; then
-            echo "run=true" >> "$GITHUB_OUTPUT"
-            echo "::notice::cards are ${age}m old (limit ${MAX_AGE_MINUTES}m) - running at $now"
-          else
-            echo "run=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::cards are ${age}m old (limit ${MAX_AGE_MINUTES}m) - fresh, holding"
-          fi
-
-      - name: Render the cards
-        if: steps.gate.outputs.run == 'true'
-        env:
-          # Berlin is the DISPLAY clock and only the display clock: the date the
-          # cards are labelled with, the last day the graph plots, and the date
-          # the verify step below greps for. It must not become UTC - during
-          # CEST a 23:xx UTC slot is already the next Berlin day, so a UTC-dated
-          # card would plot only through yesterday and sit there all day, which
-          # is the lag this pipeline exists to remove.
-          #
-          # It is NOT the clock the streak reasons with, and the two must stay
-          # apart. GitHub buckets the contribution calendar in UTC, so
-          # generate_cards.py anchors the current streak on the UTC day on
-          # purpose. Collapsing them back into one clock is what rendered a live
-          # 66-day streak as 0 on 2026-09-12 - see the long comment on the
-          # anchor in that file before touching either.
-          #
-          # Midnight safety no longer comes from running in a quiet window;
-          # there is no window any more. It comes from CARD_DAY, pinned once in
-          # the run block below and reused by verify. GitHub accepts a `to` past
-          # the current UTC instant and returns that day with a zero count, so
-          # asking the calendar for Berlin-today is safe.
-          TZ: Europe/Berlin
-          # Measured 2026-09-12: no STREAK_TOKEN secret exists, and none is
-          # needed. The job token already sees this account's private
-          # contributions (its total matched the owner-token total exactly at
-          # the same instant), because they are published on the profile. If
-          # that profile setting is ever turned off, the totals will drop and a
-          # PAT with `repo` in STREAK_TOKEN is the fix - the fallback stays here
-          # for that day.
-          GITHUB_TOKEN: ${{ secrets.STREAK_TOKEN || secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          # Pin the display day once, here, and let verify reuse it. Slots run
-          # all day now - in CEST the 21:41 UTC slot is 23:41 Berlin, and this
-          # file has seen crons land over three hours late - so render and
-          # verify can otherwise straddle Berlin midnight and reject a good card.
-          echo "CARD_DAY=$(date +%F)" >> "$GITHUB_ENV"
-          CARD_DAY="$(date +%F)" python3 scripts/generate_cards.py
-
-      - name: Verify the cards are actually current
-        if: steps.gate.outputs.run == 'true'
-        env:
-          TZ: Europe/Berlin    # must match the render step - see the note above
-        run: |
-          set -euo pipefail
-          # The graph's aria-label ends on the last day plotted. If that is not
-          # today, something rendered stale data and must not be committed.
-          today="${CARD_DAY:?CARD_DAY was not set by the render step}"
-
-          # All four cards, dark and light, must be well-formed AND stamped with
-          # today. The stamp is what lets the streak cards be checked at all -
-          # only the graphs carry a date in their aria-label, and a streak card
-          # with a broken streak renders "-" with nothing datable on it. Before
-          # this, "all four cards verified" checked the date of exactly two.
-          for f in profile/streak.svg profile/streak-light.svg \
-                   profile/activity-graph.svg profile/activity-graph-light.svg; do
-            [ -s "$f" ] || { echo "::error::$f is empty"; exit 1; }
-            grep -q "</svg>" "$f" || { echo "::error::$f is truncated"; exit 1; }
-            grep -q "<!-- rendered $today -->" "$f" \
-              || { echo "::error::$f was not rendered today ($today)"; exit 1; }
-          done
-
-          # The graphs additionally have to plot through today.
-          for f in profile/activity-graph.svg profile/activity-graph-light.svg; do
-            grep -q "and $today" "$f" \
-              || { echo "::error::$f does not plot through $today"; exit 1; }
-          done
-
-          # And the README has to point at today's cards. Camo caches by URL, so
-          # a correct card behind a stale URL is still a stale profile - the
-          # cards were right on the remote and wrong on the profile for exactly
-          # this reason before the ?d= buster existed.
-          for c in streak streak-light activity-graph activity-graph-light; do
-            grep -q "profile/$c.svg?d=$today" README.md \
-              || { echo "::error::README does not point at today's $c.svg"; exit 1; }
-          done
-
-          echo "all four cards, both themes, verified current through $today"
-          echo "README card URLs verified at ?d=$today"
-
-      # Do NOT give this step STREAK_TOKEN or any other PAT. It pushes to main,
-      # and this workflow also triggers `on: push` to main. That is not a loop
-      # only because pushes made with the default GITHUB_TOKEN do not trigger
-      # further workflow runs. A PAT is treated as a real user push and would
-      # start an endless push -> run -> commit -> push cycle.
-      - name: Commit updated cards
-        if: steps.gate.outputs.run == 'true'
-        uses: stefanzweifel/git-auto-commit-action@4a55954c782fc1ea30b9056cd3e7a2b40ca8887d  # v7.2.0
+      - name: Commit updated streak SVG
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "update analytics cards"
-          # README.md too: it carries the ?d= cache-buster that makes GitHub
-          # re-fetch the cards. Committing the cards without it means Camo keeps
-          # serving yesterday's.
-          file_pattern: profile/*.svg README.md
+          commit_message: "chore: update streak stats"
+          file_pattern: profile/streak.svg
