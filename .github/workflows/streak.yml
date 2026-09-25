@@ -13,7 +13,8 @@ name: Generate Streak Stats
 # contribution graph, so main carries only the owner's own work. The README
 # loads the cards from raw.githubusercontent.com/.../analytics/.
 #
-# SCHEDULE - twice a day, 1 AM and 1 PM IST.
+# SCHEDULE - twice a day, 1 AM and 1 PM IST (plus once on any push that
+# changes the cards).
 # GitHub cron is UTC-only and best-effort: runs start late and are sometimes
 # dropped with no error and no failed run. :00 and :30 are the most contended
 # minutes. On 2026-09-25 the lone "30 7" (1 PM IST) cron never started, and the
@@ -28,10 +29,19 @@ on:
     - cron: "23,53 9,21 * * *"
     - cron: "29 10,22 * * *"
     - cron: "13 11,23 * * *"
+  # A change to the cards themselves republishes at once rather than waiting
+  # for the next window. No loop: this job never pushes to main.
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/streak.yml'
+      - 'scripts/**'
+      - 'README.md'
   workflow_dispatch:
 
 permissions:
   contents: write
+  actions: write     # keepalive step below
 
 # Two retries landing together must not both publish the same slot.
 concurrency:
@@ -116,3 +126,17 @@ jobs:
           commit_message: "cards for ${{ steps.gate.outputs.slot }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # GitHub disables scheduled workflows in a public repo after 60 days
+      # with no activity, and nothing here commits to main any more. Enabling
+      # an enabled workflow is a no-op that resets that clock - no commit.
+      # Runs even when the gate held or a step above failed; if it fails
+      # itself the job goes red, so it cannot lapse silently.
+      - name: Keep the schedules alive
+        if: ${{ !cancelled() }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh api -X PUT "repos/${{ github.repository }}/actions/workflows/streak.yml/enable"
+          gh api -X PUT "repos/${{ github.repository }}/actions/workflows/snake.yml/enable"

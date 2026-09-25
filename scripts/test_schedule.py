@@ -285,6 +285,26 @@ def test_main_history_names_only_the_owner():
     assert not bad, bad
 
 
+def test_scheduled_workflows_are_kept_alive_without_commits():
+    # GitHub disables schedules in a public repo after 60 days without
+    # activity, and the cards no longer commit to main. Re-enabling through
+    # the API resets that clock without a commit.
+    text = WORKFLOW.read_text()
+    assert re.search(r"^\s*actions:\s*write", text, re.M)
+    for wf in ("streak.yml", "snake.yml"):
+        assert f"actions/workflows/{wf}/enable" in text, wf
+
+
+def test_a_push_that_changes_the_cards_publishes_them_at_once():
+    # Otherwise the README points at an analytics branch that does not exist
+    # until the next scheduled window.
+    text = WORKFLOW.read_text()
+    push = text.split("  push:", 1)[1].split("  workflow_dispatch:", 1)[0]
+    assert "branches: [main]" in push
+    for path in (".github/workflows/streak.yml", "scripts/**", "README.md"):
+        assert f"'{path}'" in push, path
+
+
 def test_workflow_serialises_runs():
     assert re.search(r"^concurrency:", WORKFLOW.read_text(), re.M)
 
