@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Render the GitHub Analytics cards under profile/ from GitHub's own GraphQL API.
+Render the GitHub Analytics cards into $CARD_OUT (default dist/) from GitHub's own GraphQL API.
 
 WHY THIS EXISTS
 ---------------
@@ -34,7 +34,7 @@ import urllib.request
 from datetime import date, datetime, timedelta, timezone
 
 USER = os.environ.get("CARD_USER", "vinay4955")
-OUT_DIR = os.environ.get("CARD_OUT", "profile")
+OUT_DIR = os.environ.get("CARD_OUT", "dist")
 API = "https://api.github.com/graphql"
 GRAPH_DAYS = 31   # rolling month, matching the card this replaced
 
@@ -437,6 +437,21 @@ def render_graph(s: dict, t: dict, theme_name: str) -> str:
 # main
 # --------------------------------------------------------------------------
 
+def stamp(svg: str) -> str:
+    """Mark which day and which refresh slot produced this card.
+
+    verify_cards.sh greps for both, and slot.py reads the slot back to decide
+    whether a retry cron still has work to do. The slot line also changes every
+    half-day, so the 1 AM and 1 PM cards differ even on a quiet day.
+    Comments sit inside the root element, invisible to every renderer."""
+    lines = [f"<!-- rendered {display_day().isoformat()} -->"]
+    card_slot = os.environ.get("CARD_SLOT")
+    if card_slot:
+        lines.append(f"<!-- slot {card_slot} -->")
+    head, tail = svg.rstrip().rsplit("</svg>", 1)
+    return head + "\n".join(lines) + "\n</svg>" + tail + "\n"
+
+
 def main() -> None:
     summary = summarise(contributions())
     os.makedirs(OUT_DIR, exist_ok=True)
@@ -449,7 +464,7 @@ def main() -> None:
     }
     for name, svg in outputs.items():
         with open(os.path.join(OUT_DIR, name), "w") as fh:
-            fh.write(svg)
+            fh.write(stamp(svg))
 
     print(f"total={summary['total']} current={summary['current']} "
           f"longest={summary['longest']} first={summary['first']}")
