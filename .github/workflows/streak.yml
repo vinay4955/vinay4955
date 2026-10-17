@@ -4,14 +4,15 @@ name: Generate Streak Stats
 # activity-graph.svg, activity-graph-light.svg) from GitHub's own GraphQL
 # contribution calendar - no third-party service that can go down or start
 # charging, and no fallback that keeps a stale card. If data cannot be fetched
-# the job goes red.
+# the job goes red. The contribution snake is built in the same run.
 #
-# WHERE THE CARDS LIVE - nothing is committed to main.
-# The cards are published to the `analytics` branch as a single commit by
-# github-actions[bot], replaced on every run (keep_history: false). Commits on
-# a non-default branch never reach the Contributors sidebar or anyone's
-# contribution graph, so main carries only the owner's own work. The README
-# loads the cards from raw.githubusercontent.com/.../analytics/.
+# WHERE THE CARDS LIVE - nothing is pushed, to main or to any other branch.
+# They are deployed as a GitHub Pages artifact and the README loads them from
+# https://vinay4955.github.io/vinay4955/. A Pages deployment does not update a
+# branch, so it never touches the repo's "Updated" time (the last push to ANY branch),
+# never lands in the Contributors sidebar or the contribution graph, and main
+# carries only the owner's own work. Pages replaces the whole site on every
+# deploy, which is why the snake is built into the same dist/.
 #
 # SCHEDULE - twice a day, 1 AM and 1 PM IST (plus once on any push that
 # changes the cards).
@@ -30,7 +31,7 @@ on:
     - cron: "29 10,22 * * *"
     - cron: "13 11,23 * * *"
   # A change to the cards themselves republishes at once rather than waiting
-  # for the next window. No loop: this job never pushes to main.
+  # for the next window. No loop: this workflow never pushes anything.
   push:
     branches: [main]
     paths:
@@ -38,10 +39,6 @@ on:
       - 'scripts/**'
       - 'README.md'
   workflow_dispatch:
-
-permissions:
-  contents: write
-  actions: write     # keepalive step below
 
 # Two retries landing together must not both publish the same slot.
 concurrency:
@@ -52,34 +49,22 @@ jobs:
   streak:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: write     # keepalive step below
+    outputs:
+      run: ${{ steps.gate.outputs.run }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
         with:
           ref: main
 
-      - name: Fetch the last published cards
+      - name: Fetch the last published card
         run: |
-          set -euo pipefail
-          last="$RUNNER_TEMP/last-streak.svg"
-          # Only a branch that genuinely does not exist (ls-remote exit 2) is
-          # the first-run case. Any other failure must fail the job: treating a
-          # network blip as "no branch" would empty the gate's input and
-          # republish a slot that is already done.
-          set +e
-          git ls-remote --exit-code --heads origin analytics > /dev/null
-          status=$?
-          set -e
-          if [ "$status" -eq 2 ]; then
-            echo "::notice::no analytics branch yet - first publish"
-            : > "$last"
-          elif [ "$status" -ne 0 ]; then
-            echo "::error::could not query the analytics branch (exit $status)"
-            exit 1
-          else
-            git fetch --depth=1 origin +refs/heads/analytics:refs/remotes/origin/analytics
-            git show origin/analytics:streak.svg > "$last"
-          fi
+          bash scripts/fetch_last_card.sh \
+            "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/streak.svg" \
+            "$RUNNER_TEMP/last-streak.svg"
 
       - name: Decide whether this slot still needs a run
         id: gate
@@ -113,23 +98,25 @@ jobs:
           CARD_SLOT: ${{ steps.gate.outputs.slot }}
         run: bash scripts/verify_cards.sh
 
-      - name: Publish the cards
+      - name: Build the snake
         if: steps.gate.outputs.run == 'true'
-        uses: crazy-max/ghaction-github-pages@v5
+        uses: Platane/snk@v3
         with:
-          target_branch: analytics
-          build_dir: dist
-          keep_history: false
-          jekyll: false
-          author: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
-          committer: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
-          commit_message: "cards for ${{ steps.gate.outputs.slot }}"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          github_user_name: ${{ github.repository_owner }}
+          outputs: |
+            dist/github-snake.svg
+            dist/github-snake-dark.svg?palette=github-dark
+            dist/github-snake.gif?color_snake=orange&color_dots=#bfd0d8,#70a5fd,#4c8bf5,#3563e9,#1a3fc4
+
+      - name: Upload the Pages artifact
+        if: steps.gate.outputs.run == 'true'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
 
       # GitHub disables scheduled workflows in a public repo after 60 days
-      # with no activity, and nothing here commits to main any more. Enabling
-      # an enabled workflow is a no-op that resets that clock - no commit.
+      # with no activity, and nothing here commits to main. Enabling an
+      # enabled workflow is a no-op that resets that clock - no commit.
       # Runs even when the gate held or a step above failed; if it fails
       # itself the job goes red, so it cannot lapse silently.
       - name: Keep the schedules alive
@@ -139,4 +126,19 @@ jobs:
         run: |
           set -euo pipefail
           gh api -X PUT "repos/${{ github.repository }}/actions/workflows/streak.yml/enable"
-          gh api -X PUT "repos/${{ github.repository }}/actions/workflows/snake.yml/enable"
+
+  deploy:
+    needs: streak
+    if: needs.streak.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

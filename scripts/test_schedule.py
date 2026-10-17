@@ -235,28 +235,133 @@ def test_workflow_never_commits_to_main():
     assert not re.search(r"target_branch:\s*main\b", text)
 
 
-def test_cards_publish_to_the_analytics_branch_as_the_actions_bot():
+def all_workflows():
+    return sorted((ROOT / ".github" / "workflows").glob("*.y*ml"))
+
+
+def test_no_workflow_pushes_to_any_branch():
+    # 2026-10-17: the repo list showed "Updated 11 hours ago" because GitHub's
+    # Updated time is the last push to ANY branch - the snake pushed to
+    # `output` and the cards to `analytics` every day. Nothing scheduled may
+    # push a branch; publishing goes through a Pages deployment, which is not
+    # a git push and leaves pushed_at alone.
+    for wf in all_workflows():
+        text = wf.read_text()
+        assert "ghaction-github-pages" not in text, wf.name
+        assert "git-auto-commit-action" not in text, wf.name
+        assert not re.search(r"target_branch:", text), wf.name
+        assert not re.search(r"git\s+push", text), wf.name
+        assert "contents: write" not in text, wf.name
+
+
+def test_cards_deploy_through_pages_artifact_not_a_branch():
     text = WORKFLOW.read_text()
-    assert re.search(r"target_branch:\s*analytics\b", text)
-    assert "keep_history: false" in text
-    assert re.search(r"author:\s*github-actions\[bot\]", text)
-    assert re.search(r"committer:\s*github-actions\[bot\]", text)
+    assert "actions/upload-pages-artifact@" in text
+    assert "actions/deploy-pages@" in text
+    assert re.search(r"^\s*pages:\s*write", text, re.M)
+    assert re.search(r"^\s*id-token:\s*write", text, re.M)
+    assert "name: github-pages" in text
 
 
-def test_gate_reads_the_last_card_from_the_analytics_branch():
-    assert "origin/analytics:streak.svg" in WORKFLOW.read_text()
-
-
-def test_only_a_missing_branch_counts_as_first_run():
-    # A transient fetch error must fail the job, not read as "no branch yet" -
-    # that would empty the gate's input and republish a finished slot.
+def test_the_deploy_job_only_runs_when_the_gate_says_run():
     text = WORKFLOW.read_text()
-    assert "git ls-remote --exit-code --heads origin analytics" in text
-    assert "|| echo" not in text
-    assert "|| : >" not in text
+    deploy = text.split("\n  deploy:", 1)[1]
+    assert "needs: streak" in deploy
+    assert "needs.streak.outputs.run == 'true'" in deploy
 
 
-def test_gate_runs_when_the_analytics_branch_does_not_exist_yet():
+def test_snake_is_built_into_the_same_deployment():
+    # A Pages deployment replaces the whole site, so the snake must ride along
+    # in dist/ or it would vanish on the next card refresh.
+    assert "Platane/snk@" in WORKFLOW.read_text()
+    assert not (ROOT / ".github" / "workflows" / "snake.yml").exists()
+
+
+def test_gate_reads_the_last_card_from_the_live_pages_site():
+    text = WORKFLOW.read_text()
+    assert "scripts/fetch_last_card.sh" in text
+    assert "github.io" in text
+    assert "origin/analytics" not in text
+
+
+def _fetch(url, out):
+    return subprocess.run(["bash", str(HERE / "fetch_last_card.sh"), url, str(out)],
+                          capture_output=True, text=True)
+
+
+class _Site:
+    """Local http server serving `routes` {path: (status, body)}."""
+
+    def __init__(self, routes):
+        self.routes = routes
+
+    def __enter__(self):
+        import threading
+        from http.server import BaseHTTPRequestHandler, HTTPServer
+        routes = self.routes
+
+        class H(BaseHTTPRequestHandler):
+            def do_GET(self):
+                status, body = routes.get(self.path.split("?")[0], (404, b""))
+                self.send_response(status)
+                self.end_headers()
+                self.wfile.write(body)
+
+            def log_message(self, *a):
+                pass
+
+        self.srv = HTTPServer(("127.0.0.1", 0), H)
+        threading.Thread(target=self.srv.serve_forever, daemon=True).start()
+        self.base = f"http://127.0.0.1:{self.srv.server_port}"
+        return self
+
+    def __exit__(self, *a):
+        self.srv.shutdown()
+
+
+def test_fetch_writes_the_published_card_on_200():
+    with tempfile.TemporaryDirectory() as tmp, \
+            _Site({"/streak.svg": (200, b"<svg/><!-- slot 2026-10-17 AM -->")}) as site:
+        out = Path(tmp) / "last.svg"
+        r = _fetch(site.base + "/streak.svg", out)
+        assert r.returncode == 0, r.stderr
+        assert slot.slot_in(out.read_text()) == "2026-10-17 AM"
+
+
+def test_fetch_treats_404_as_first_publish():
+    with tempfile.TemporaryDirectory() as tmp, _Site({}) as site:
+        out = Path(tmp) / "last.svg"
+        r = _fetch(site.base + "/streak.svg", out)
+        assert r.returncode == 0, r.stderr
+        assert out.read_text() == ""
+
+
+def test_fetch_fails_loudly_on_a_server_error():
+    # A 5xx must not read as "nothing published yet" - that would empty the
+    # gate's input and republish a slot that is already done.
+    with tempfile.TemporaryDirectory() as tmp, \
+            _Site({"/streak.svg": (503, b"down")}) as site:
+        r = _fetch(site.base + "/streak.svg", Path(tmp) / "last.svg")
+        assert r.returncode != 0
+
+
+def test_fetch_fails_loudly_when_the_site_is_unreachable():
+    with tempfile.TemporaryDirectory() as tmp:
+        r = _fetch("http://127.0.0.1:9/streak.svg", Path(tmp) / "last.svg")
+        assert r.returncode != 0
+
+
+def test_fetch_is_idempotent():
+    with tempfile.TemporaryDirectory() as tmp, \
+            _Site({"/streak.svg": (200, b"<svg/>")}) as site:
+        out = Path(tmp) / "last.svg"
+        _fetch(site.base + "/streak.svg", out)
+        first = out.read_bytes()
+        _fetch(site.base + "/streak.svg", out)
+        assert out.read_bytes() == first
+
+
+def test_gate_runs_when_no_card_has_been_published_yet():
     with tempfile.TemporaryDirectory() as tmp:
         out = Path(tmp) / "gh_output"
         env = {**os.environ, "EVENT": "schedule", "CARD_FILE": str(Path(tmp) / "missing.svg"),
@@ -266,11 +371,12 @@ def test_gate_runs_when_the_analytics_branch_does_not_exist_yet():
         assert "run=true" in out.read_text().splitlines()
 
 
-def test_readme_loads_every_card_from_the_analytics_branch():
+def test_readme_loads_every_card_from_the_pages_site():
     readme = (ROOT / "README.md").read_text()
     assert "/main/profile/" not in readme
+    assert "/analytics/" not in readme
     for c in CARDS:
-        assert f"vinay4955/vinay4955/analytics/{c}.svg" in readme, c
+        assert f"https://vinay4955.github.io/vinay4955/{c}.svg" in readme, c
 
 
 def test_main_history_names_only_the_owner():
@@ -291,12 +397,12 @@ def test_scheduled_workflows_are_kept_alive_without_commits():
     # the API resets that clock without a commit.
     text = WORKFLOW.read_text()
     assert re.search(r"^\s*actions:\s*write", text, re.M)
-    for wf in ("streak.yml", "snake.yml"):
-        assert f"actions/workflows/{wf}/enable" in text, wf
+    assert "actions/workflows/streak.yml/enable" in text
+    assert "snake.yml" not in text
 
 
 def test_a_push_that_changes_the_cards_publishes_them_at_once():
-    # Otherwise the README points at an analytics branch that does not exist
+    # Otherwise the README points at a Pages site that has no cards
     # until the next scheduled window.
     text = WORKFLOW.read_text()
     push = text.split("  push:", 1)[1].split("  workflow_dispatch:", 1)[0]
@@ -313,7 +419,8 @@ def test_every_step_after_the_gate_is_gated():
     # Dropping the `if:` from the publish step would pass every other test
     # while republishing on every retry cron.
     text = WORKFLOW.read_text()
-    for name in ("Render the cards", "Verify the cards are current", "Publish the cards"):
+    for name in ("Render the cards", "Verify the cards are current",
+                 "Build the snake", "Upload the Pages artifact"):
         block = text.split(f"- name: {name}", 1)[1].split("- name:", 1)[0]
         assert "if: steps.gate.outputs.run == 'true'" in block, name
 
