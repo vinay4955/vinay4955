@@ -92,11 +92,6 @@
   <img src="https://vinay4955.github.io/vinay4955/streak-light.svg" alt="GitHub streak: current streak, longest streak and total contributions" />
 </picture>
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://vinay4955.github.io/vinay4955/activity-graph.svg">
-  <img src="https://vinay4955.github.io/vinay4955/activity-graph-light.svg" width="95%" alt="Contribution activity graph for the past month" />
-</picture>
-
 </div>
 
 <!-- ============================ EDUCATION & CERTS ============================ -->
